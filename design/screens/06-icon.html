@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>TubeNX — 06 Icon</title>
+<link rel="stylesheet" href="../assets/base.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/app.css">
+<script src="../assets/frame.js"></script>
+<style>
+.cap { position: absolute; font: 500 12px/16px "Google Sans"; letter-spacing: .3px; color: var(--on-surface-variant); white-space: nowrap; }
+.ic { position: absolute; display: block; }
+.h { position: absolute; left: 64px; top: 40px; }
+.tile { position: absolute; width: 152px; height: 152px; border-radius: 28px; display: flex; align-items: center; justify-content: center; }
+.tile.d { background: var(--surface-container-high); }
+.tile.l { background: var(--surface-container-high); }
+.tile img, .tile .tint { width: 112px; height: 112px; display: block; }
+.tint { fill: var(--on-surface); }
+
+.var { position: absolute; top: 112px; width: 368px; height: 544px; border-radius: 28px; background: var(--surface-container-low); padding: 24px; }
+.var.rec { background: var(--surface-container-high); outline: 3px solid var(--primary); }
+.var .big { width: 224px; height: 224px; display: block; }
+.var .smalls { position: absolute; left: 272px; top: 24px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.var .smalls span { font: 500 12px/16px "Google Sans"; color: var(--on-surface-variant); }
+.var h3 { font: 500 22px/28px "Google Sans"; margin-top: 20px; }
+.var p { font: 400 14px/20px "Google Sans"; letter-spacing: .15px; color: var(--on-surface-variant); margin-top: 8px; }
+.tag { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px 0 8px; border-radius: 999px; margin-top: 16px;
+       font: 500 12px/16px "Google Sans"; letter-spacing: .3px; }
+.tag .icon { font-size: 18px; }
+.tag.yes { background: var(--primary); color: var(--on-primary); }
+.tag.alt { background: var(--secondary-container); color: var(--on-secondary-container); }
+.tag.no { background: var(--error-container); color: var(--on-error-container); }
+
+.con { position: absolute; left: 64px; top: 112px; width: 544px; height: 544px; }
+.con img, .con svg { position: absolute; inset: 0; width: 544px; height: 544px; display: block; }
+.con text { font: 500 24px "Google Sans"; }
+.plist { position: absolute; left: 656px; top: 112px; width: 560px; }
+.prow { display: flex; gap: 16px; padding: 7px 0; border-bottom: 1px solid var(--outline-variant); font: 400 14px/20px "Google Sans"; letter-spacing: .15px; }
+.prow b { font-weight: 500; width: 168px; flex: none; color: var(--on-surface); }
+.prow span { color: var(--on-surface-variant); }
+.gbar { height: 40px; border-radius: 16px; margin-top: 16px; background: linear-gradient(90deg, #C3002F, #7A0020); position: relative; }
+.gbar i { position: absolute; top: 12px; width: 16px; height: 16px; border-radius: 50%; background: #fff; }
+.glab { display: flex; justify-content: space-between; margin-top: 6px; font: 500 12px/16px "Google Sans"; letter-spacing: .3px; color: var(--on-surface-variant); }
+.clear { position: absolute; left: 656px; top: 596px; display: flex; gap: 20px; align-items: center; }
+.clear .box { width: 82px; height: 82px; border: 1px dashed #4fd1ff; padding: 8px; flex: none; }
+.clear .box img { width: 64px; height: 64px; display: block; }
+.clear p { font: 400 14px/20px "Google Sans"; color: var(--on-surface-variant); width: 440px; }
+
+.half { position: absolute; top: 0; width: 640px; height: 720px; background: var(--surface-container-lowest); color: var(--on-surface); }
+.tiles { position: absolute; left: 46px; top: 112px; display: flex; gap: 12px; }
+.ph { width: 128px; height: 128px; background: var(--surface-container-highest); display: flex; align-items: center; justify-content: center; color: var(--outline); }
+.ph img { width: 128px; height: 128px; display: block; }
+.hb { position: absolute; left: 46px; top: 328px; width: 548px; height: 112px; border-radius: 16px; background: var(--surface-container); display: flex; align-items: center; gap: 16px; padding: 0 16px; }
+.hb img { width: 80px; height: 80px; display: block; }
+.bar { position: absolute; left: 46px; top: 528px; width: 548px; height: 72px; border-radius: 16px; overflow: hidden; background: var(--surface); }
+.bar .appbar { position: static; height: 72px; }
+
+.band { position: absolute; left: 0; width: 1280px; height: 360px; background: var(--surface); color: var(--on-surface); }
+.ill { position: absolute; top: 64px; width: 272px; height: 264px; border-radius: 28px; background: var(--surface-container-low); padding: 16px; }
+.ill svg { display: block; width: 240px; height: 160px; }
+.ill-shape { fill: var(--ill-shape, var(--surface-container-high)); }
+.ill-line { fill: var(--ill-line, var(--outline-variant)); }
+.ill-line-s { fill: none; stroke: var(--ill-line, var(--outline-variant)); }
+.ill-accent { fill: var(--ill-accent, var(--primary)); }
+.ill-accent-s { fill: none; stroke: var(--ill-accent, var(--primary)); }
+.ill h4 { font: 500 16px/24px "Google Sans"; letter-spacing: .15px; margin-top: 12px; }
+.ill p { font: 400 12px/16px "Google Sans"; letter-spacing: .2px; color: var(--on-surface-variant); margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="board">
+  <div>
+    <div class="board-title">06 Icon</div>
+    <div class="board-sub">Иконка приложения (NACP + hbmenu), варианты, построение, контекст и SVG-иллюстрации пустых состояний. Исходники — design/export/icon и design/export/illustrations; SVG иконки собирает design/tools/build_icon.mjs.</div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Icon / Размеры и монохром</div>
+      <div class="frame dark" id="icon-sizes">
+        <div class="h headline-s">Иконка приложения</div>
+
+        <img class="ic" src="../export/icon/icon-1024.png" style="left:64px; top:112px; width:512px; height:512px">
+        <div class="cap" style="left:64px; top:636px">1024 × 1024 — исходник, показан в 512</div>
+
+        <img class="ic" src="../export/icon/icon-256.png" style="left:608px; top:368px; width:256px; height:256px">
+        <div class="cap" style="left:608px; top:636px">256 × 256 — NACP</div>
+
+        <img class="ic" src="../export/icon/icon-128.png" style="left:896px; top:496px; width:128px; height:128px">
+        <div class="cap" style="left:896px; top:636px">128</div>
+
+        <img class="ic" src="../export/icon/icon-64.png" style="left:1056px; top:560px; width:64px; height:64px">
+        <div class="cap" style="left:1056px; top:636px">64</div>
+
+        <img class="ic" src="../export/icon/icon-48.png" style="left:1152px; top:576px; width:48px; height:48px">
+        <div class="cap" style="left:1152px; top:636px">48</div>
+
+        <div class="abs" style="left:608px; top:112px; width:256px">
+          <div class="title-l">TubeNX</div>
+          <div class="body-m muted" style="margin-top:8px">Белый play в красном squircle. Холст залит до краёв, прозрачных пикселей нет.</div>
+          <div class="body-m muted" style="margin-top:8px">Каждый размер отрисован из SVG отдельно, без уменьшения большого файла.</div>
+        </div>
+
+        <div class="tile d" style="left:896px; top:112px"><img src="../export/icon/icon-mono-256.png"></div>
+        <div class="cap" style="left:896px; top:272px">Монохром на тёмном</div>
+        <div class="light">
+          <div class="tile l" style="left:1064px; top:112px"><!--mono--><svg class="tint" viewBox="0 0 1024 1024"><path fill-rule="evenodd" d="M992 512C992 595.26 994.56 678.63 988.29 761.65C986.33 787.63 983.22 813.56 977.04 838.87C972.6 857.06 966.54 874.86 957.84 891.43C950.44 905.55 941.13 918.6 929.86 929.86C918.6 941.13 905.55 950.44 891.43 957.84C874.86 966.54 857.06 972.6 838.87 977.04C813.56 983.22 787.63 986.33 761.65 988.29C678.63 994.56 595.26 992 512 992C428.74 992 345.37 994.56 262.35 988.29C236.37 986.33 210.44 983.22 185.13 977.04C166.94 972.6 149.14 966.54 132.57 957.84C118.45 950.44 105.4 941.13 94.14 929.86C82.87 918.6 73.56 905.55 66.16 891.43C57.46 874.86 51.4 857.06 46.96 838.87C40.78 813.56 37.67 787.63 35.71 761.65C29.44 678.63 32 595.26 32 512C32 428.74 29.44 345.37 35.71 262.35C37.67 236.37 40.78 210.44 46.96 185.13C51.4 166.94 57.46 149.14 66.16 132.57C73.56 118.45 82.87 105.4 94.14 94.14C105.4 82.87 118.45 73.56 132.57 66.16C149.14 57.46 166.94 51.4 185.13 46.96C210.44 40.78 236.37 37.67 262.35 35.71C345.37 29.44 428.74 32 512 32C595.26 32 678.63 29.44 761.65 35.71C787.63 37.67 813.56 40.78 838.87 46.96C857.06 51.4 874.86 57.46 891.43 66.16C905.55 73.56 918.6 82.87 929.86 94.14C941.13 105.4 950.44 118.45 957.84 132.57C966.54 149.14 972.6 166.94 977.04 185.13C983.22 210.44 986.33 236.37 988.29 262.35C994.56 345.37 992 428.74 992 512ZM362.71 328.12A14 14 0 0 1 383.65 315.97L705.44 499.84A14 14 0 0 1 705.44 524.16L383.65 708.03A14 14 0 0 1 362.71 695.88Z"/></svg><!--/mono--></div>
+        </div>
+        <div class="cap" style="left:1064px; top:272px">Монохром на светлом</div>
+        <div class="cap" style="left:896px; top:296px; white-space:normal; width:320px; font-weight:400">Знак белый на прозрачном. На светлом фоне белый не виден, поэтому перекрашивается в onSurface.</div>
+      </div>
+      <div class="spec">Ряд выровнен по низу (y = 624), зазор 32. Файлы: icon-1024.png, icon-256.png (NACP), icon-128.png, icon-64.png, icon-48.png, icon.svg.
+Монохром: icon-mono.svg и icon-mono-256.png — белый squircle с вырезанным треугольником, фон прозрачный (RGBA). Только для документации, не для NACP.
+Плитки монохрома: surfaceContainerHigh тёмной и светлой темы; на светлой тот же контур вставлен инлайн-SVG и залит onSurface.</div>
+    </div>
+
+    <div class="shot">
+      <div class="name">Icon / Варианты A · B · N</div>
+      <div class="frame dark" id="icon-variants">
+        <div class="h headline-s">Варианты</div>
+
+        <div class="var rec" style="left:64px">
+          <img class="big" src="../export/icon/variants/icon-a-squircle.svg">
+          <div class="smalls">
+            <img src="../export/icon/icon-64.png" width="64" height="64"><span>64</span>
+            <img src="../export/icon/icon-48.png" width="48" height="48"><span>48</span>
+          </div>
+          <span class="tag yes"><span class="icon">check</span>Рекомендация</span>
+          <h3>A. Squircle на подложке</h3>
+          <p>Холст непрозрачный, углы залиты тёмным тоном того же красного. Форма «печенья» видна в любом лаунчере, даже если система ничего не скругляет.</p>
+          <p>Закрывает оба требования сразу: квадрат без прозрачности и squircle.</p>
+        </div>
+
+        <div class="var" style="left:456px">
+          <img class="big" src="../export/icon/variants/icon-b-fullbleed.svg">
+          <div class="smalls">
+            <img src="../export/icon/variants/icon-b-fullbleed.svg" width="64" height="64"><span>64</span>
+            <img src="../export/icon/variants/icon-b-fullbleed.svg" width="48" height="48"><span>48</span>
+          </div>
+          <span class="tag alt"><span class="icon">info</span>Запасной</span>
+          <h3>B. Градиент на весь квадрат</h3>
+          <p>Годится, только если оболочка сама скругляет или обрезает плитку. В hbmenu и на домашнем экране иконка остаётся квадратом — формы squircle нет.</p>
+          <p>Треугольник тот же, читается так же.</p>
+        </div>
+
+        <div class="var" style="left:848px">
+          <img class="big" src="../export/icon/variants/icon-n-idea.svg">
+          <div class="smalls">
+            <img src="../export/icon/variants/icon-n-idea.svg" width="64" height="64"><span>64</span>
+            <img src="../export/icon/variants/icon-n-idea.svg" width="48" height="48"><span>48</span>
+          </div>
+          <span class="tag no"><span class="icon">close</span>Не рекомендуется</span>
+          <h3>N. Треугольник + стойка</h3>
+          <p>Идея: play и правая стойка образуют «N» с контрформой. На деле знак читается как «следующее видео», а не как буква — и в 256, и в 64.</p>
+          <p>Условие ТЗ «только если читается в 64» не выполнено.</p>
+        </div>
+      </div>
+      <div class="spec">Три карточки 368 × 544, зазор 24, радиус 28. Крупная иконка 224, рядом те же варианты в 64 и 48.
+Рекомендация — A (surfaceContainerHigh + кольцо 3 px primary). B — запасной, если платформа сама задаёт форму. N показан как идея и отклонён.
+Файлы: variants/icon-a-squircle.svg (= icon.svg), variants/icon-b-fullbleed.svg, variants/icon-n-idea.svg.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Icon / Построение</div>
+      <div class="frame dark" id="icon-construction">
+        <div class="h headline-s">Построение</div>
+
+        <div class="con">
+          <img src="../export/icon/icon.svg">
+          <svg viewBox="0 0 1024 1024" fill="none">
+            <g stroke="#ffffff" stroke-opacity=".22" stroke-width="1.5">
+              <path d="M128 0V1024M256 0V1024M384 0V1024M640 0V1024M768 0V1024M896 0V1024M0 128H1024M0 256H1024M0 384H1024M0 640H1024M0 768H1024M0 896H1024"/>
+            </g>
+            <path d="M512 0V1024M0 512H1024" stroke="#4fd1ff" stroke-width="2.5"/>
+            <rect x="32" y="32" width="960" height="960" stroke="#4fd1ff" stroke-width="2.5" stroke-dasharray="14 10"/>
+            <rect x="32" y="32" width="960" height="960" rx="212" stroke="#ff4fd8" stroke-width="2.5" stroke-dasharray="6 8"/>
+            <path d="M537.6 250V774" stroke="#ff4fd8" stroke-width="3"/>
+            <rect x="362.7" y="304" width="349.8" height="416" stroke="#ff4fd8" stroke-width="2.5"/>
+            <circle cx="376.7" cy="328.1" r="14" stroke="#4fd1ff" stroke-width="3"/>
+            <circle cx="698.5" cy="512" r="14" stroke="#4fd1ff" stroke-width="3"/>
+            <circle cx="376.7" cy="695.9" r="14" stroke="#4fd1ff" stroke-width="3"/>
+            <path d="M32 32L992 992" stroke="#ffffff" stroke-opacity=".5" stroke-width="2" stroke-dasharray="4 10"/>
+            <circle cx="170" cy="170" r="13" fill="#C3002F" stroke="#fff" stroke-width="4"/>
+            <circle cx="854" cy="854" r="13" fill="#7A0020" stroke="#fff" stroke-width="4"/>
+            <text x="196" y="160" fill="#fff">#C3002F</text>
+            <text x="720" y="906" fill="#fff">#7A0020</text>
+            <text x="548" y="282" fill="#fff">+2,5 %</text>
+            <text x="60" y="1016" fill="#fff">поле 32</text>
+            <text x="724" y="486" fill="#fff">r 14</text>
+          </svg>
+        </div>
+
+        <div class="plist">
+          <div class="prow"><b>Холст</b><span>1024 × 1024, залит #3A000F до краёв, без прозрачности</span></div>
+          <div class="prow"><b>Сетка</b><span>8 × 8 модулей по 128; оси по центру (голубые)</span></div>
+          <div class="prow"><b>Squircle</b><span>суперэллипс n = 5, сторона 960, 32 кубические Безье</span></div>
+          <div class="prow"><b>Радиус</b><span>эквивалент 212 px = 22 % стороны (розовый пунктир — rect с rx 212 для сравнения)</span></div>
+          <div class="prow"><b>Треугольник</b><span>350 × 416 по видимому габариту, белый #FFFFFF, заливка без обводки</span></div>
+          <div class="prow"><b>Скругление углов</b><span>дуги r = 14 на 1024 → 3,5 px в масштабе 256</span></div>
+          <div class="prow"><b>Оптический сдвиг</b><span>центр габарита x = 537,6: +25,6 px = 2,5 % вправо от оси</span></div>
+          <div class="prow"><b>Градиент</b><span>линейный, диагональ из левого верхнего в правый нижний угол squircle</span></div>
+          <div class="gbar"><i style="left:16px"></i><i style="right:16px"></i></div>
+          <div class="glab"><span>0 % · #C3002F · (32, 32)</span><span>100 % · #7A0020 · (992, 992)</span></div>
+        </div>
+
+        <div class="clear">
+          <div class="box"><img src="../export/icon/icon-64.png"></div>
+          <p>Охранное поле в макетах — 1/8 стороны иконки с каждой стороны. Внутри холста поле между squircle и краем — 32 px из 1024 (3,1 %): форма не касается края плитки.</p>
+        </div>
+      </div>
+      <div class="spec">Иконка показана в 544 (масштаб 0,53). Голубым — оси, поле 32 и окружности скругления углов; розовым — габарит треугольника, его оптическая ось и rect с rx 22 % для сравнения с суперэллипсом.
+Геометрический центр масс треугольника при этом x = 484 (левее оси): сдвиг считается по видимому габариту, как в ТЗ.
+Без теней, обводок, шума и текста. Градиент двухточечный — ложится в fillLinearGradient.</div>
+    </div>
+
+    <div class="shot">
+      <div class="name">Icon / В контексте</div>
+      <div class="frame dark" id="icon-context">
+        <div class="half dark" style="left:0">
+          <div class="abs headline-s" style="left:46px; top:40px">На тёмном фоне</div>
+          <div class="tiles">
+            <div class="ph"><span class="icon s40">sports_esports</span></div>
+            <div class="ph"><img src="../export/icon/icon-128.png"></div>
+            <div class="ph"><span class="icon s40">music_note</span></div>
+            <div class="ph"><span class="icon s40">movie</span></div>
+          </div>
+          <div class="cap" style="left:46px; top:252px">Домашний экран: ряд квадратных плиток, 128 × 128</div>
+          <div class="hb">
+            <img src="../export/icon/icon-128.png">
+            <div><div class="title-m">TubeNX</div><div class="body-s muted">1.0 • homebrew</div></div>
+          </div>
+          <div class="cap" style="left:46px; top:452px">Строка списка hbmenu: иконка 80 × 80</div>
+          <div class="bar"><div class="appbar">
+            <span class="mark"><span class="icon">play_arrow</span></span>
+            <span class="title-l">TubeNX</span><span class="spacer"></span>
+            <span class="ibtn s44"><span class="icon">search</span></span>
+            <span class="ibtn s44" style="margin-left:-4px"><span class="icon">settings</span></span>
+          </div></div>
+          <div class="cap" style="left:46px; top:612px">Top app bar: марка 32 × 32, primary + onPrimary</div>
+        </div>
+
+        <div class="half light" style="left:640px">
+          <div class="abs headline-s" style="left:46px; top:40px">На светлом фоне</div>
+          <div class="tiles">
+            <div class="ph"><span class="icon s40">sports_esports</span></div>
+            <div class="ph"><img src="../export/icon/icon-128.png"></div>
+            <div class="ph"><span class="icon s40">music_note</span></div>
+            <div class="ph"><span class="icon s40">movie</span></div>
+          </div>
+          <div class="cap" style="left:46px; top:252px">Домашний экран: ряд квадратных плиток, 128 × 128</div>
+          <div class="hb">
+            <img src="../export/icon/icon-128.png">
+            <div><div class="title-m">TubeNX</div><div class="body-s muted">1.0 • homebrew</div></div>
+          </div>
+          <div class="cap" style="left:46px; top:452px">Строка списка hbmenu: иконка 80 × 80</div>
+          <div class="bar"><div class="appbar">
+            <span class="mark"><span class="icon">play_arrow</span></span>
+            <span class="title-l">TubeNX</span><span class="spacer"></span>
+            <span class="ibtn s44"><span class="icon">search</span></span>
+            <span class="ibtn s44" style="margin-left:-4px"><span class="icon">settings</span></span>
+          </div></div>
+          <div class="cap" style="left:46px; top:612px">Top app bar: марка 32 × 32, primary + onPrimary</div>
+        </div>
+      </div>
+      <div class="spec">Условные макеты оболочки, не скриншоты: плитки 128 с зазором 12, соседние приложения — нейтральные заглушки surfaceContainerHighest, чужих логотипов нет.
+Плитка системы квадратная — видно, зачем подложка до краёв: углы тёмно-красные, а не прозрачные или белые.
+Марка в app bar — компонент Mark из общей библиотеки (squircle primary, play onPrimary), а не уменьшенная иконка: в интерфейсе цвет берётся из роли и меняется вместе с seed.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Illustrations / Пустые состояния / Тёмная и светлая</div>
+      <div class="frame dark" id="illustrations">
+        <div class="band dark" style="top:0">
+          <div class="abs title-s muted" style="left:64px; top:28px">Тёмная тема</div>
+          <div class="ill" style="left:64px"><!--ill:empty-feed--><svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="0 0 240 160" fill="none"><rect class="ill-line" x="78" y="14" width="84" height="20" rx="10"/><rect class="ill-shape" x="52" y="26" width="136" height="80" rx="20"/><path class="ill-accent" d="M108.5 50.2A3 3 0 0 1 113 47.6L136.2 63.4A3 3 0 0 1 136.2 68.6L113 84.4A3 3 0 0 1 108.5 81.8Z"/><rect class="ill-shape" x="52" y="118" width="136" height="12" rx="6"/><rect class="ill-line" x="52" y="138" width="80" height="10" rx="5"/></svg><!--/ill--><h4>Пока ничего нет</h4><p>empty-feed.svg · Home</p></div>
+          <div class="ill" style="left:357px"><!--ill:empty-search--><svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="0 0 240 160" fill="none"><rect class="ill-shape" x="24" y="96" width="76" height="14" rx="7"/><rect class="ill-shape" x="24" y="120" width="48" height="14" rx="7"/><circle class="ill-shape" cx="126" cy="68" r="50"/><circle class="ill-line-s" cx="126" cy="68" r="44" stroke-width="8"/><rect class="ill-line" x="102" y="54" width="48" height="10" rx="5"/><rect class="ill-line" x="102" y="72" width="30" height="10" rx="5"/><path class="ill-accent-s" d="M166 108L192 134" stroke-width="16" stroke-linecap="round"/></svg><!--/ill--><h4>Найдите что посмотреть</h4><p>empty-search.svg · Search</p></div>
+          <div class="ill" style="left:650px"><!--ill:not-found--><svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="0 0 240 160" fill="none"><rect class="ill-shape" x="36" y="18" width="168" height="40" rx="20"/><circle class="ill-line" cx="58" cy="38" r="8"/><rect class="ill-line" x="76" y="33" width="72" height="10" rx="5"/><rect class="ill-line-s" x="38" y="72" width="164" height="72" rx="22" stroke-width="4" stroke-dasharray="14 10" stroke-linecap="round"/><path class="ill-accent-s" d="M106 94L134 122M134 94L106 122" stroke-width="10" stroke-linecap="round"/></svg><!--/ill--><h4>Ничего не найдено</h4><p>not-found.svg · Search</p></div>
+          <div class="ill" style="left:943px"><!--ill:offline--><svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="0 0 240 160" fill="none"><circle class="ill-shape" cx="90" cy="84" r="30"/><circle class="ill-shape" cx="126" cy="62" r="40"/><circle class="ill-shape" cx="162" cy="88" r="26"/><rect class="ill-shape" x="60" y="70" width="128" height="44" rx="22"/><rect class="ill-line" x="84" y="130" width="72" height="10" rx="5"/><path class="ill-accent-s" d="M78 26L174 122" stroke-width="12" stroke-linecap="round"/></svg><!--/ill--><h4>Нет сети</h4><p>offline.svg · ошибка сети</p></div>
+        </div>
+        <div class="band light" style="top:360px">
+          <div class="abs title-s muted" style="left:64px; top:28px">Светлая тема</div>
+          <div class="ill" style="left:64px"><!--ill:empty-feed--><svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="0 0 240 160" fill="none"><rect class="ill-line" x="78" y="14" width="84" height="20" rx="10"/><rect class="ill-shape" x="52" y="26" width="136" height="80" rx="20"/><path class="ill-accent" d="M108.5 50.2A3 3 0 0 1 113 47.6L136.2 63.4A3 3 0 0 1 136.2 68.6L113 84.4A3 3 0 0 1 108.5 81.8Z"/><rect class="ill-shape" x="52" y="118" width="136" height="12" rx="6"/><rect class="ill-line" x="52" y="138" width="80" height="10" rx="5"/></svg><!--/ill--><h4>Пока ничего нет</h4><p>empty-feed.svg · Home</p></div>
+          <div class="ill" style="left:357px"><!--ill:empty-search--><svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="0 0 240 160" fill="none"><rect class="ill-shape" x="24" y="96" width="76" height="14" rx="7"/><rect class="ill-shape" x="24" y="120" width="48" height="14" rx="7"/><circle class="ill-shape" cx="126" cy="68" r="50"/><circle class="ill-line-s" cx="126" cy="68" r="44" stroke-width="8"/><rect class="ill-line" x="102" y="54" width="48" height="10" rx="5"/><rect class="ill-line" x="102" y="72" width="30" height="10" rx="5"/><path class="ill-accent-s" d="M166 108L192 134" stroke-width="16" stroke-linecap="round"/></svg><!--/ill--><h4>Найдите что посмотреть</h4><p>empty-search.svg · Search</p></div>
+          <div class="ill" style="left:650px"><!--ill:not-found--><svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="0 0 240 160" fill="none"><rect class="ill-shape" x="36" y="18" width="168" height="40" rx="20"/><circle class="ill-line" cx="58" cy="38" r="8"/><rect class="ill-line" x="76" y="33" width="72" height="10" rx="5"/><rect class="ill-line-s" x="38" y="72" width="164" height="72" rx="22" stroke-width="4" stroke-dasharray="14 10" stroke-linecap="round"/><path class="ill-accent-s" d="M106 94L134 122M134 94L106 122" stroke-width="10" stroke-linecap="round"/></svg><!--/ill--><h4>Ничего не найдено</h4><p>not-found.svg · Search</p></div>
+          <div class="ill" style="left:943px"><!--ill:offline--><svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="0 0 240 160" fill="none"><circle class="ill-shape" cx="90" cy="84" r="30"/><circle class="ill-shape" cx="126" cy="62" r="40"/><circle class="ill-shape" cx="162" cy="88" r="26"/><rect class="ill-shape" x="60" y="70" width="128" height="44" rx="22"/><rect class="ill-line" x="84" y="130" width="72" height="10" rx="5"/><path class="ill-accent-s" d="M78 26L174 122" stroke-width="12" stroke-linecap="round"/></svg><!--/ill--><h4>Нет сети</h4><p>offline.svg · ошибка сети</p></div>
+        </div>
+      </div>
+      <div class="spec">Четыре SVG 240 × 160 в design/export/illustrations: только rect, circle, path; без фильтров, растров и текста. Карточка 272 × 264, радиус 28, surfaceContainerLow.
+Роли: .ill-shape — surfaceContainerHigh (крупные формы), .ill-line — outlineVariant (детали), .ill-accent — primary (один акцент на иллюстрацию).
+Цвета берутся из --surface-container-high / --outline-variant / --primary страницы; переопределить можно через --ill-shape / --ill-line / --ill-accent. Вне страницы (файл открыт отдельно) работают fallback-значения тёмной темы.
+Инлайн-SVG вставлены из файлов скриптом design/tools/inline_illustrations.mjs.</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

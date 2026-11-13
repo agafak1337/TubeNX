@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="0 0 240 160" fill="none">
+<style>.ill-shape{fill:var(--ill-shape,var(--surface-container-high,#2F2828))}.ill-line{fill:var(--ill-line,var(--outline-variant,#534343))}.ill-line-s{fill:none;stroke:var(--ill-line,var(--outline-variant,#534343))}.ill-accent{fill:var(--ill-accent,var(--primary,#FFB2B4))}.ill-accent-s{fill:none;stroke:var(--ill-accent,var(--primary,#FFB2B4))}</style>
+<rect class="ill-line" x="78" y="14" width="84" height="20" rx="10"/>
+<rect class="ill-shape" x="52" y="26" width="136" height="80" rx="20"/>
+<path class="ill-accent" d="M108.5 50.2A3 3 0 0 1 113 47.6L136.2 63.4A3 3 0 0 1 136.2 68.6L113 84.4A3 3 0 0 1 108.5 81.8Z"/>
+<rect class="ill-shape" x="52" y="118" width="136" height="12" rx="6"/>
+<rect class="ill-line" x="52" y="138" width="80" height="10" rx="5"/>
+</svg>

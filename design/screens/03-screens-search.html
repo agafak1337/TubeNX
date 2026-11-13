@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>TubeNX — 03 Screens / Search</title>
+<link rel="stylesheet" href="../assets/base.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/app.css">
+<script src="../assets/frame.js"></script>
+<style>
+/* Шапка поиска: назад 44×44 + search bar 52 */
+.shead { position: absolute; left: 0; right: 0; top: 0; height: 72px; padding: 0 24px 0 20px; display: flex; align-items: center; gap: 12px; background: var(--surface); }
+.searchbar .close { margin-right: -8px; }
+.searchbar .caret { display: inline-block; width: 2px; height: 22px; margin-left: 2px; vertical-align: -4px; background: var(--primary); }
+.searchbar.is-focus { background: color-mix(in srgb, var(--primary) 10%, var(--surface-container-high)); }
+.searchbar.is-focus > .icon:first-child { color: var(--primary); }
+
+/* Пустое состояние Search: заголовок headlineSmall (в app.css .empty h2 — headlineMedium) */
+.empty.search h2 { font: 400 24px/32px "Google Sans"; }
+
+/* Недавние: колонка 720 по центру */
+.recent { position: absolute; left: 280px; width: 720px; }
+.recent .section-title { padding: 0 16px; height: 28px; }
+.recent .li { border-radius: 12px; }
+.recent .li .main > div:first-child { font: 400 16px/24px "Google Sans"; letter-spacing: .15px; }
+.recent .divider { margin: 0 16px; }
+
+/* Карточка подсказок — единственная поверхность с тенью */
+.suggest { position: absolute; left: 76px; width: 1180px; top: 66px; z-index: 5; }
+.suggest .li { font: 400 16px/24px "Google Sans"; letter-spacing: .15px; height: 48px; }
+.suggest .li .main b { font-weight: 500; }
+.suggest .li .fill-in { color: var(--on-surface-variant); }
+</style>
+</head>
+<body>
+<div class="board">
+  <div>
+    <div class="board-title">03 Screens — Search</div>
+    <div class="board-sub">ТЗ §4.3. Шапка 72: назад 44×44 (x=20) + search bar 52, радиус 26, x=76…1256. Клавиатура — системная (Switch), не рисуется. Результаты — сетка Home: 4 × 296, зазор 16, поля 24.</div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Search / Пусто, есть история / Тёмная</div>
+      <div class="frame dark" id="search-empty">
+        <div class="shead">
+          <span class="ibtn s44"><span class="icon">arrow_back</span></span>
+          <div class="searchbar"><span class="icon">search</span><span class="placeholder">Поиск на YouTube</span></div>
+        </div>
+        <div class="empty search" style="top:168px">
+          <span class="icon s64 glyph">search</span>
+          <h2>Найдите что посмотреть</h2>
+          <p>Нажмите на поле — откроется клавиатура Switch</p>
+        </div>
+        <div class="recent" style="top:344px">
+          <div class="section-title">Недавние</div>
+          <div class="li two"><span class="icon">history</span><div class="main"><div class="clamp1">Обход DPI в 2026: что реально работает</div><div class="sub clamp1">Network Notes</div></div></div>
+          <div class="divider"></div>
+          <div class="li two"><span class="icon">history</span><div class="main"><div class="clamp1">Собираем homebrew NRO с devkitPro за 10 минут</div><div class="sub clamp1">Switch Dev</div></div></div>
+          <div class="divider"></div>
+          <div class="li two"><span class="icon">history</span><div class="main"><div class="clamp1">Lo-Fi Hip Hop Radio — beats to relax/study to</div><div class="sub clamp1">Lofi Girl</div></div></div>
+          <div class="divider"></div>
+          <div class="li two"><span class="icon">history</span><div class="main"><div class="clamp1">Как устроен Material 3 Expressive: формы, цвет и движение на практике, разбор всех компонентов по порядку и с примерами</div><div class="sub clamp1">Дизайн-кухня</div></div></div>
+        </div>
+      </div>
+      <div class="spec">Иконка search 64, outline, центр y=200 · заголовок headlineSmall y=248 · текст bodyMedium onSurfaceVariant y=288.
+«Недавние» titleSmall y=344 · список 720 по центру (x=280), строка 64: иконка history 24 onSurfaceVariant, название bodyLarge 1 строка с ellipsis, канал bodySmall onSurfaceVariant · разделитель outlineVariant 1 px. Низ списка y=631.</div>
+    </div>
+
+    <div class="shot">
+      <div class="name">Search / Пусто, истории нет / Тёмная</div>
+      <div class="frame dark" id="search-empty-no-history">
+        <div class="shead">
+          <span class="ibtn s44"><span class="icon">arrow_back</span></span>
+          <div class="searchbar"><span class="icon">search</span><span class="placeholder">Поиск на YouTube</span></div>
+        </div>
+        <div class="empty search" style="top:168px">
+          <span class="icon s64 glyph">search</span>
+          <h2>Найдите что посмотреть</h2>
+          <p>Нажмите на поле — откроется клавиатура Switch</p>
+        </div>
+      </div>
+      <div class="spec">То же без блока «Недавние». Положение иконки и текста не меняется — экран не «прыгает», когда появляется история.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Search / Фокус геймпада на поле / Тёмная</div>
+      <div class="frame dark" id="search-focus-field">
+        <div class="shead">
+          <span class="ibtn s44"><span class="icon">arrow_back</span></span>
+          <div class="searchbar is-focus"><span class="icon">search</span><span class="placeholder">Поиск на YouTube</span></div>
+        </div>
+        <div class="empty search" style="top:168px">
+          <span class="icon s64 glyph">search</span>
+          <h2>Найдите что посмотреть</h2>
+          <p>Нажмите на поле — откроется клавиатура Switch</p>
+        </div>
+        <div class="recent" style="top:344px">
+          <div class="section-title">Недавние</div>
+          <div class="li two"><span class="icon">history</span><div class="main"><div class="clamp1">Обход DPI в 2026: что реально работает</div><div class="sub clamp1">Network Notes</div></div></div>
+          <div class="divider"></div>
+          <div class="li two"><span class="icon">history</span><div class="main"><div class="clamp1">Собираем homebrew NRO с devkitPro за 10 минут</div><div class="sub clamp1">Switch Dev</div></div></div>
+          <div class="divider"></div>
+          <div class="li two"><span class="icon">history</span><div class="main"><div class="clamp1">Lo-Fi Hip Hop Radio — beats to relax/study to</div><div class="sub clamp1">Lofi Girl</div></div></div>
+          <div class="divider"></div>
+          <div class="li two"><span class="icon">history</span><div class="main"><div class="clamp1">Как устроен Material 3 Expressive: формы, цвет и движение на практике, разбор всех компонентов по порядку и с примерами</div><div class="sub clamp1">Дизайн-кухня</div></div></div>
+        </div>
+      </div>
+      <div class="spec">Фокус: кольцо 3 px primary с зазором 2 px (радиус 26+2+3) + подложка primary 10 % поверх surfaceContainerHigh + иконка search в primary. A — открыть клавиатуру.</div>
+    </div>
+
+    <div class="shot">
+      <div class="name">Search / Подсказки / Тёмная</div>
+      <div class="frame dark" id="search-suggest">
+        <div class="shead">
+          <span class="ibtn s44"><span class="icon">arrow_back</span></span>
+          <div class="searchbar"><span class="icon">search</span><span class="text">nintendo sw<span class="caret"></span></span><span class="ibtn s44 close"><span class="icon">close</span></span></div>
+        </div>
+        <div class="empty search" style="top:168px">
+          <span class="icon s64 glyph">search</span>
+          <h2>Найдите что посмотреть</h2>
+          <p>Нажмите на поле — откроется клавиатура Switch</p>
+        </div>
+        <div class="menu suggest">
+          <div class="li"><span class="icon">history</span><div class="main clamp1"><b>nintendo sw</b>itch 2 обзор</div><span class="icon fill-in">north_west</span></div>
+          <div class="li is-focus"><span class="icon">history</span><div class="main clamp1"><b>nintendo sw</b>itch homebrew</div><span class="icon fill-in">north_west</span></div>
+          <div class="li"><span class="icon">search</span><div class="main clamp1"><b>nintendo sw</b>itch</div><span class="icon fill-in">north_west</span></div>
+          <div class="li"><span class="icon">search</span><div class="main clamp1"><b>nintendo sw</b>itch online игры</div><span class="icon fill-in">north_west</span></div>
+          <div class="li"><span class="icon">search</span><div class="main clamp1"><b>nintendo sw</b>itch oled или lite что выбрать в 2026 году</div><span class="icon fill-in">north_west</span></div>
+          <div class="li"><span class="icon">search</span><div class="main clamp1"><b>nintendo sw</b>itch sports</div><span class="icon fill-in">north_west</span></div>
+        </div>
+      </div>
+      <div class="spec">Карточка подсказок: x=76, y=66, ширина 1180 (по полю), surfaceContainer, радиус 16, паддинг 8/0, тень 0 2 10 (единственная тень на экране) · 6 строк × 48 · иконка history — из истории, search — подсказка YouTube · текст bodyLarge, введённая часть Medium · справа north_west (подставить в поле) onSurfaceVariant.
+Строка в фокусе: кольцо 3 px primary внутрь + подложка primary 10 %. Поле: текст onSurface, каретка primary 2 px, справа close 44×44.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Search / Результаты / Тёмная</div>
+      <div class="frame dark" id="search-results" data-grid="results"></div>
+      <div class="spec">Запрос остаётся в поле, справа close. Сетка y=88: 4 × 296, зазор 16 / 24, поля 24, карточка 296 × 256 (обложка 166, радиус 16) — те же .grid/.vcard, что на Home. Низ второго ряда y=624, ниже резерв под тосты.
+Длинное название (120 символов) обрезается двумя строками.</div>
+    </div>
+
+    <div class="shot">
+      <div class="name">Search / Результаты, фокус на карточке / Тёмная</div>
+      <div class="frame dark" id="search-results-focus" data-grid="results" data-focus="5"></div>
+      <div class="spec">Фокус карточки как на Home: кольцо 3 px primary вокруг обложки, подложка primaryContainer (−8 px, радиус 22), обложка +6 % white, play 48 в круге чёрный 45 %. Карточка не двигается.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Search / Загрузка / Тёмная</div>
+      <div class="frame dark" id="search-loading" data-grid="skeleton"></div>
+      <div class="spec">8 скелетонов на местах карточек: surfaceContainerHigh, без шиммера; пульсация opacity 0.6→1.0 за 1.2 с. Запрос виден в поле.</div>
+    </div>
+
+    <div class="shot">
+      <div class="name">Search / Ничего не найдено / Тёмная</div>
+      <div class="frame dark" id="search-not-found">
+        <div class="shead">
+          <span class="ibtn s44"><span class="icon">arrow_back</span></span>
+          <div class="searchbar"><span class="icon">search</span><span class="text">ыфвапролд switch</span><span class="ibtn s44 close"><span class="icon">close</span></span></div>
+        </div>
+        <div class="empty search" style="top:208px">
+          <span class="icon s64 glyph">search_off</span>
+          <h2>Ничего не найдено</h2>
+          <p>Проверьте написание или попробуйте другие слова</p>
+          <span class="btn tonal">Изменить запрос</span>
+        </div>
+      </div>
+      <div class="spec">Иконка search_off 64 outline · заголовок headlineSmall · пояснение bodyMedium onSurfaceVariant, 1 строка · кнопка tonal 40 «Изменить запрос» (возвращает фокус в поле и открывает клавиатуру). Блок по центру, y=208…428.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Search / Ошибка сети / Тёмная</div>
+      <div class="frame dark" id="search-error">
+        <div class="shead">
+          <span class="ibtn s44"><span class="icon">arrow_back</span></span>
+          <div class="searchbar"><span class="icon">search</span><span class="text">nintendo switch homebrew</span><span class="ibtn s44 close"><span class="icon">close</span></span></div>
+        </div>
+        <div class="errcard" style="top:264px">
+          <div class="head">
+            <span class="icon">cloud_off</span>
+            <div>
+              <h3>Не удалось выполнить поиск</h3>
+              <p>YouTube не отвечает. Проверьте подключение к сети или включите обход блокировок в настройках.</p>
+            </div>
+          </div>
+          <div class="actions">
+            <span class="btn text">Настройки</span>
+            <span class="btn filled">Повторить</span>
+          </div>
+        </div>
+      </div>
+      <div class="spec">Карточка ошибки как на Home: 560 по центру (x=360), errorContainer / onErrorContainer, радиус 28, паддинг 24 · иконка cloud_off 32 · заголовок titleLarge · текст bodyMedium, 2 строки · «Повторить» filled, «Настройки» text. Запрос остаётся в поле.</div>
+    </div>
+  </div>
+</div>
+
+<template id="tpl-head">
+  <div class="shead">
+    <span class="ibtn s44"><span class="icon">arrow_back</span></span>
+    <div class="searchbar"><span class="icon">search</span><span class="text">nintendo switch homebrew</span><span class="ibtn s44 close"><span class="icon">close</span></span></div>
+  </div>
+</template>
+<script>
+(function () {
+  var videos = [
+    ["t4", "14:07", "Собираем homebrew NRO с devkitPro за 10 минут", "Switch Dev", "312 тыс. просмотров • 2 недели назад"],
+    ["t2", "1:02:13", "Nintendo Switch homebrew в 2026: полный разбор сцены, инструментов и эмуляторов — что изменилось за год и с чего начать новичку", "Network Notes", "2,7 млн просмотров • 5 дней назад"],
+    ["t5", "9:54", "Atmosphere 1.9: что нового", "Console Lab", "96 тыс. просмотров • 1 день назад"],
+    ["t7", "32:40", "История Nintendo: от карт до Switch", "Ретро-архив", "1,2 млн просмотров • 3 месяца назад"],
+    ["t1", "6:18", "10 приложений для Switch, о которых мало кто знает", "Портативка", "540 тыс. просмотров • 1 месяц назад"],
+    ["t3", "21:35", "libnx с нуля: рисуем первый кадр", "Switch Dev", "41 тыс. просмотров • 4 месяца назад"],
+    ["t6", "3:02:45", "Стрим: портируем плеер на Switch", "ночной кодинг", "18 тыс. просмотров • 6 дней назад"],
+    ["t8", "11:11", "Dock или handheld: где картинка лучше", "Пиксель в пиксель", "203 тыс. просмотров • 8 месяцев назад"]
+  ];
+  document.querySelectorAll("[data-grid]").forEach(function (f) {
+    var focus = f.dataset.focus ? +f.dataset.focus : -1;
+    var html = document.getElementById("tpl-head").innerHTML + '<div class="grid abs" style="left:0; top:88px">';
+    videos.forEach(function (v, i) {
+      if (f.dataset.grid === "skeleton") {
+        html += '<div class="vcard skeleton"><div class="cover"></div><div class="sk l1"></div><div class="sk l2"></div><div class="sk l3"></div></div>';
+      } else {
+        html += '<div class="vcard' + (i === focus ? " is-focus" : "") + '"><div class="cover"><div class="th ' + v[0] + '"></div><span class="badge">' + v[1] +
+          '</span><span class="play"><span class="icon fill">play_arrow</span></span></div><div class="title">' + v[2] +
+          '</div><div class="channel">' + v[3] + '</div><div class="meta">' + v[4] + "</div></div>";
+      }
+    });
+    f.innerHTML = html + "</div>";
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>TubeNX — 04 Player</title>
+<link rel="stylesheet" href="../assets/base.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/app.css">
+<script src="../assets/frame.js"></script>
+<style>
+/* Кадры-заглушки видео: градиенты и простые фигуры */
+.vid { position: absolute; inset: 0; overflow: hidden; }
+.vid i { position: absolute; display: block; }
+.v-night { background: linear-gradient(#0a0f26 0%, #1b2350 58%, #2b2144 100%); }
+.v-night .a { left: 900px; top: 86px; width: 96px; height: 96px; border-radius: 50%; background: #e9e6d6; }
+.v-night .b { left: -120px; top: 430px; width: 980px; height: 520px; border-radius: 50%; background: #10173a; }
+.v-night .c { left: 520px; top: 500px; width: 1000px; height: 480px; border-radius: 50%; background: #070b1c; }
+.v-snow { background: linear-gradient(#cfe9ff 0%, #eef8ff 40%, #ffffff 62%, #f6f4ec 100%); }
+.v-snow .a { left: 40px; top: -90px; width: 300px; height: 300px; border-radius: 50%; background: #ffffff; }
+.v-snow .b { left: 380px; top: 210px; width: 620px; height: 330px; background: #d3e2f2; clip-path: polygon(0 100%, 46% 0, 64% 34%, 76% 18%, 100% 100%); }
+.v-snow .c { left: -200px; top: 470px; width: 1700px; height: 600px; border-radius: 50%; background: #ffffff; }
+.v-sunset { background: linear-gradient(#ff8fa6 0%, #ffb08c 44%, #ffd9a0 62%, #7c2f52 62%, #45183a 100%); }
+.v-sunset .a { left: 548px; top: 262px; width: 184px; height: 184px; border-radius: 50%; background: #fff0c2; }
+.v-sunset .b { left: 0; top: 446px; width: 1280px; height: 274px; background: linear-gradient(#8c3558, #3d1533); }
+.v-sunset .c { left: 596px; top: 470px; width: 88px; height: 10px; border-radius: 5px; background: #ffd9a0; }
+.dim { position: absolute; inset: 0; background: rgba(0,0,0,.12); }
+.dim.d55 { background: rgba(0,0,0,.55); }
+
+/* Верх */
+.p-back { position: absolute; left: 20px; top: 20px; }
+.p-title { position: absolute; left: 76px; top: 20px; width: 904px; color: #fff; }
+.p-sub { position: absolute; left: 76px; top: 52px; width: 904px; color: rgba(255,255,255,.78); }
+
+/* Таймкоды и дорожка */
+.tc { position: absolute; top: 608px; height: 20px; padding: 2px 6px; border-radius: 6px; background: rgba(0,0,0,.6); color: #fff;
+      font: 500 12px/16px "Google Sans"; letter-spacing: .3px; }
+.tc.l { left: 24px; } .tc.r { right: 24px; }
+.seek { position: absolute; left: 96px; top: 596px; width: 1088px; height: 44px; }
+.seek.is-focus .buffer { height: 6px; margin-top: -3px; }
+.seek.is-focus .thumb { box-shadow: 0 0 0 3px #fff, 0 0 0 5px rgba(0,0,0,.6); }
+.seek .value { bottom: 40px; }
+/* Фокус дорожки: лёгкая подложка вместо заливки всей 44-зоны — линия, буфер и ползунок остаются читаемыми */
+.slider.seek.is-focus { background: color-mix(in srgb, var(--primary) 12%, transparent); }
+
+/* Нижний ряд: y = 648, высота 48 */
+.p-row { position: absolute; top: 648px; height: 48px; display: flex; gap: 8px; align-items: center; }
+.p-row.l { left: 24px; } .p-row.r { right: 24px; }
+.vol { width: 140px; height: 48px; flex: none; }
+.vol .fill, .vol .thumb { background: #fff; }
+.tap { height: 48px; display: flex; align-items: center; position: relative; flex: none; }
+.chip.on-video .icon { margin-left: -6px; }
+.chip.on-video.is-open { background: rgba(255,255,255,.28); }
+.chip.on-video.off { background: transparent; box-shadow: inset 0 0 0 1px rgba(255,255,255,.5); color: rgba(255,255,255,.86); }
+.ibtn.on-video.is-selected { color: var(--primary); }
+.ibtn.on-video.is-open { background: rgba(255,255,255,.14); }
+
+/* Фокус поверх видео: заливка primaryContainer + кольцо 3 px primary + тёмные обводки 2 px с обеих сторон кольца */
+.on-video.is-focus { background: var(--primary-container); color: var(--on-primary-container);
+                     outline: 3px solid var(--primary); outline-offset: 2px;
+                     box-shadow: 0 0 0 7px rgba(0,0,0,.7); }
+.on-video.is-focus::after { opacity: 0; }
+
+/* Свёрнутые контролы */
+.strip { position: absolute; left: 0; right: 0; top: 0; height: 3px; background: rgba(255,255,255,.18); }
+.strip > i { display: block; height: 100%; background: var(--primary); }
+
+/* Меню */
+.p-menu { position: absolute; bottom: 96px; z-index: 5; }
+.p-menu .li { font: 400 16px/24px "Google Sans"; letter-spacing: .15px; white-space: nowrap; }
+.p-menu .li .gap { width: 24px; flex: none; }
+.p-menu .li .val { color: var(--on-surface-variant); font: 400 14px/20px "Google Sans"; }
+
+/* Состояния */
+.p-loading { position: absolute; left: 0; right: 0; top: 349px; display: flex; flex-direction: column; align-items: center; gap: 16px; color: #fff; }
+.p-err { position: absolute; left: 320px; top: 230px; width: 640px; height: 260px; border-radius: 28px; padding: 24px;
+         background: var(--surface-container-highest); color: var(--on-surface); display: flex; gap: 16px; }
+.p-err > .icon { color: var(--error); font-size: 32px; }
+.p-err .txt { flex: 1; min-width: 0; }
+.p-err p { margin-top: 8px; color: var(--on-surface-variant); }
+.p-err .actions { position: absolute; right: 24px; bottom: 24px; display: flex; gap: 8px; }
+.again { position: absolute; left: 0; right: 0; top: 336px; display: flex; justify-content: center; }
+.again .btn { background: var(--inverse-surface); color: var(--inverse-on-surface); }
+.rel-title { position: absolute; left: 24px; top: 412px; color: #fff; }
+.rel { position: absolute; left: 24px; top: 440px; display: flex; gap: 12px; }
+.rel .rc { width: 176px; }
+.rel .cv { width: 176px; height: 99px; border-radius: 12px; position: relative; overflow: hidden; }
+.rel .t { margin-top: 6px; color: #fff; font: 500 12px/16px "Google Sans"; letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rel .rc.is-focus { outline: none; }
+/* Пауза: солнце кадра отведено от кнопки play, чтобы не читалось как ореол вокруг неё */
+#player-paused .v-sunset .a { left: 216px; }
+#player-paused .v-sunset .c { left: 264px; }
+.p-toast { bottom: 136px; padding: 0 16px; }
+.p-dialog { position: absolute; left: 440px; top: 264px; }
+.p-dialog p { margin-top: 16px; color: var(--on-surface-variant); }
+.tag { position: absolute; right: 24px; top: 24px; padding: 4px 10px; border: 1px solid #ff4fd8; border-radius: 6px; color: #ff4fd8;
+       font: 500 12px/16px "Google Sans"; background: rgba(0,0,0,.6); z-index: 60; }
+
+/* Redline: подписи 12 px, варианты размещения */
+.redline > span { font: 500 12px/14px "Google Sans"; top: -16px; background: rgba(0,0,0,.72); padding: 0 3px; }
+.redline.in > span { top: 2px; left: 2px; }
+.redline.below > span { top: auto; bottom: -16px; }
+.redline.right > span { left: auto; right: 0; }
+.redline.cyan { border-color: #4fd1ff; } .redline.cyan > span { color: #4fd1ff; }
+</style>
+</head>
+<body>
+<div class="board">
+  <div>
+    <div class="board-title">04 Player</div>
+    <div class="board-sub">Полноэкранный плеер 1280×720: контролы, состояния, меню, фокус геймпада, redline. Кадры видео — условные заглушки (ночь, снег, закат) для проверки читаемости на тёмном и светлом фоне.</div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Player / Контролы видны / Воспроизведение</div>
+      <div class="frame video dark" id="player-controls"><div class="vid v-night"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="scrim-top"></div><div class="scrim-bottom"></div>
+        <span class="ibtn on-video p-back "><span class="icon">arrow_back</span></span>
+        <div class="p-title title-l clamp1">Ночная съёмка Млечного Пути: как выбрать место и настройки камеры</div>
+        <div class="p-sub body-s clamp1">Астрофото без границ • 720p</div>
+        <div class="center-btn"><span class="icon">pause</span></div>
+        <span class="tc l">04:21</span>
+        <div class="slider on-video seek ">
+          <div class="track"></div><div class="buffer" style="width:52%"></div><div class="fill" style="width:34%"></div>
+          <div class="thumb" style="left:34%"></div>
+        </div>
+        <span class="tc r">12:48</span>
+        <div class="p-row l">
+          <span class="ibtn on-video "><span class="icon">replay_10</span></span>
+          <span class="ibtn on-video "><span class="icon">forward_10</span></span>
+          <span class="ibtn on-video"><span class="icon">volume_up</span></span>
+          <div class="slider on-video vol"><div class="track"></div><div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div></div>
+        </div>
+        <div class="p-row r">
+          <span class="ibtn on-video "><span class="icon ">thumb_up</span></span>
+          <div class="tap"><span class="chip on-video ">720p</span></div>
+          <div class="tap"><span class="chip on-video "><span class="icon">gpp_good</span>SNI-обход</span></div>
+          <div class="tap"><span class="ibtn on-video "><span class="icon">more_vert</span></span></div>
+        </div>
+      </div>
+      <div class="spec">Скримы: верх 190 (#000 72% → 0%), низ 240 (0% → 86%). Назад 48×48 в 20,20. Заголовок titleLarge x=76 y=20, ширина 904 (до 300 от правого края), ниже bodySmall #fff 78%. Центр 84×84 #000 35%, иконка 40.
+Дорожка: зона 96…1184 × 596…640 (44), линия 4, буфер #fff 30%, прогресс primary, ползунок 14. Таймкоды labelMedium #fff на плашке #000 60%. Ряд кнопок y=648, высота 48, зазор 8, поля 24. Чипы 36 (#fff 14%), зона нажатия 48.</div>
+    </div>
+    <div class="shot">
+      <div class="name">Player / Контролы видны / Светлый кадр + название 120 символов</div>
+      <div class="frame video dark" id="player-controls-bright"><div class="vid v-snow"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="scrim-top"></div><div class="scrim-bottom"></div>
+        <span class="ibtn on-video p-back "><span class="icon">arrow_back</span></span>
+        <div class="p-title title-l clamp1">Большое путешествие по зимнему Алтаю на машине: перевалы, ледяные озёра, ночёвки в палатке и съёмка рассвета над долиной</div>
+        <div class="p-sub body-s clamp1">Дороги и горы • 720p</div>
+        <div class="center-btn"><span class="icon">pause</span></div>
+        <span class="tc l">04:21</span>
+        <div class="slider on-video seek ">
+          <div class="track"></div><div class="buffer" style="width:52%"></div><div class="fill" style="width:34%"></div>
+          <div class="thumb" style="left:34%"></div>
+        </div>
+        <span class="tc r">12:48</span>
+        <div class="p-row l">
+          <span class="ibtn on-video "><span class="icon">replay_10</span></span>
+          <span class="ibtn on-video "><span class="icon">forward_10</span></span>
+          <span class="ibtn on-video"><span class="icon">volume_up</span></span>
+          <div class="slider on-video vol"><div class="track"></div><div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div></div>
+        </div>
+        <div class="p-row r">
+          <span class="ibtn on-video "><span class="icon ">thumb_up</span></span>
+          <div class="tap"><span class="chip on-video ">720p</span></div>
+          <div class="tap"><span class="chip on-video "><span class="icon">gpp_good</span>SNI-обход</span></div>
+          <div class="tap"><span class="ibtn on-video "><span class="icon">more_vert</span></span></div>
+        </div>
+      </div>
+      <div class="spec">Проверка скримов на почти белом кадре. Название 120 символов обрезается одной строкой с многоточием на ширине 904.
+Контраст (расчёт): заголовок 5,6:1 · подпись #fff 78% — 3,3:1 (ниже 4,5, см. отчёт) · таймкоды на плашке ≥ 10:1 · текст чипа 5,4:1 · иконка в круге 84 — 2,4:1 (ниже 3, см. отчёт).</div>
+    </div>
+    <div class="shot">
+      <div class="name">Player / Контролы свёрнуты</div>
+      <div class="frame video dark" id="player-hidden"><div class="vid v-night"><i class="a"></i><i class="b"></i><i class="c"></i></div>
+        <div class="strip"><i style="width:34%"></i></div>
+      </div>
+      <div class="spec">Только полоса 3 px сверху во всю ширину: #fff 18% + прогресс primary. Скримов нет, интерактивных элементов нет.
+Кадр намеренно тёмный: на светлом видео полоса #fff 18% даёт 1,15:1 к кадру, а прогресс primary — 1,10:1 к полосе (расчёт в отчёте), состояние было бы не видно на PNG.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Player / Пауза</div>
+      <div class="frame video dark" id="player-paused"><div class="vid v-sunset"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="dim"></div><div class="scrim-top"></div><div class="scrim-bottom"></div>
+        <span class="ibtn on-video p-back "><span class="icon">arrow_back</span></span>
+        <div class="p-title title-l clamp1">Закат над бухтой: час тишины без музыки</div>
+        <div class="p-sub body-s clamp1">Море и закаты • 720p</div>
+        <div class="center-btn"><span class="icon">play_arrow</span></div>
+        <span class="tc l">04:21</span>
+        <div class="slider on-video seek ">
+          <div class="track"></div><div class="buffer" style="width:52%"></div><div class="fill" style="width:34%"></div>
+          <div class="thumb" style="left:34%"></div>
+        </div>
+        <span class="tc r">12:48</span>
+        <div class="p-row l">
+          <span class="ibtn on-video "><span class="icon">replay_10</span></span>
+          <span class="ibtn on-video "><span class="icon">forward_10</span></span>
+          <span class="ibtn on-video"><span class="icon">volume_up</span></span>
+          <div class="slider on-video vol"><div class="track"></div><div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div></div>
+        </div>
+        <div class="p-row r">
+          <span class="ibtn on-video "><span class="icon ">thumb_up</span></span>
+          <div class="tap"><span class="chip on-video ">720p</span></div>
+          <div class="tap"><span class="chip on-video "><span class="icon">gpp_good</span>SNI-обход</span></div>
+          <div class="tap"><span class="ibtn on-video "><span class="icon">more_vert</span></span></div>
+        </div>
+      </div>
+      <div class="spec">Видео затемнено слоем #000 12% под скримами. В центре play_arrow. Остальное — как в «Контролы видны». Солнце кадра отведено влево, чтобы не образовывать ореол вокруг кнопки play.</div>
+    </div>
+    <div class="shot">
+      <div class="name">Player / Буферизация</div>
+      <div class="frame video dark" id="player-buffering"><div class="vid v-night"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="scrim-top"></div><div class="scrim-bottom"></div>
+        <span class="ibtn on-video p-back "><span class="icon">arrow_back</span></span>
+        <div class="p-title title-l clamp1">Ночная съёмка Млечного Пути: как выбрать место и настройки камеры</div>
+        <div class="p-sub body-s clamp1">Астрофото без границ • 720p</div>
+        <div class="center-btn"><span class="icon">pause</span></div>
+        <span class="tc l">04:21</span>
+        <div class="slider on-video seek ">
+          <div class="track"></div><div class="buffer" style="width:35%"></div><div class="fill" style="width:34%"></div>
+          <div class="thumb" style="left:34%"></div>
+        </div>
+        <span class="tc r">12:48</span>
+        <div class="p-row l">
+          <span class="ibtn on-video "><span class="icon">replay_10</span></span>
+          <span class="ibtn on-video "><span class="icon">forward_10</span></span>
+          <span class="ibtn on-video"><span class="icon">volume_up</span></span>
+          <div class="slider on-video vol"><div class="track"></div><div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div></div>
+        </div>
+        <div class="p-row r">
+          <span class="ibtn on-video "><span class="icon ">thumb_up</span></span>
+          <div class="tap"><span class="chip on-video ">720p</span></div>
+          <div class="tap"><span class="chip on-video "><span class="icon">gpp_good</span>SNI-обход</span></div>
+          <div class="tap"><span class="ibtn on-video "><span class="icon">more_vert</span></span></div>
+        </div>
+        <div class="capsule" style="top:120px"><span class="spinner s20 on-video"></span>Буферизация…</div>
+      </div>
+      <div class="spec">Капсула по центру, y=120, высота 40, #000 60%, спиннер 20 #fff + labelLarge #fff. Буфер почти догнал прогресс. Капсула не интерактивна.</div>
+    </div>
+    <div class="shot">
+      <div class="name">Player / Загрузка</div>
+      <div class="frame video dark" id="player-loading">
+        <span class="ibtn on-video p-back"><span class="icon">arrow_back</span></span>
+        <div class="p-loading"><span class="spinner on-video"></span><span class="body-m">Получаем потоки…</span></div>
+      </div>
+      <div class="spec">Чёрный фон. Спиннер 22 px строго по центру (349…371), под ним через 16 px bodyMedium #fff. Назад 48×48 остаётся для тача.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Player / Ошибка</div>
+      <div class="frame video dark" id="player-error">
+        <div class="p-err">
+          <span class="icon">error</span>
+          <div class="txt">
+            <div class="title-l">Не удалось воспроизвести</div>
+            <p class="body-m clamp3">Сервер YouTube не отдал потоки для этого видео: соединение оборвалось на этапе TLS-рукопожатия после трёх попыток. Проверьте обход DPI в настройках или попробуйте другой режим фрагментации, затем повторите запрос. Код ошибки: stream_fetch_failed, попытка 3 из 3, время ожидания 15 с.</p>
+          </div>
+          <div class="actions"><span class="btn text">Назад</span><span class="btn tonal l">Повторить</span></div>
+        </div>
+      </div>
+      <div class="spec">Карточка 640×260 в 320,230, радиус 28, паддинг 24, surfaceContainerHighest. Иконка error 32 (error), заголовок titleLarge onSurface, текст bodyMedium onSurfaceVariant — 3 строки, дальше многоточие.
+«Повторить» — tonal 48, «Назад» — text 40 (зона нажатия 48), между ними 8.</div>
+    </div>
+    <div class="shot">
+      <div class="name">Player / Конец видео</div>
+      <div class="frame video dark" id="player-ended"><div class="vid v-night"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="scrim-top"></div><div class="scrim-bottom"></div>
+        <span class="ibtn on-video p-back "><span class="icon">arrow_back</span></span>
+        <div class="p-title title-l clamp1">Ночная съёмка Млечного Пути: как выбрать место и настройки камеры</div>
+        <div class="p-sub body-s clamp1">Астрофото без границ • 720p</div>
+        <span class="tc l">12:48</span>
+        <div class="slider on-video seek ">
+          <div class="track"></div><div class="buffer" style="width:100%"></div><div class="fill" style="width:100%"></div>
+          <div class="thumb" style="left:100%"></div>
+        </div>
+        <span class="tc r">12:48</span>
+        <div class="p-row l">
+          <span class="ibtn on-video "><span class="icon">replay_10</span></span>
+          <span class="ibtn on-video "><span class="icon">forward_10</span></span>
+          <span class="ibtn on-video"><span class="icon">volume_up</span></span>
+          <div class="slider on-video vol"><div class="track"></div><div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div></div>
+        </div>
+        <div class="p-row r">
+          <span class="ibtn on-video "><span class="icon ">thumb_up</span></span>
+          <div class="tap"><span class="chip on-video ">720p</span></div>
+          <div class="tap"><span class="chip on-video "><span class="icon">gpp_good</span>SNI-обход</span></div>
+          <div class="tap"><span class="ibtn on-video "><span class="icon">more_vert</span></span></div>
+        </div>
+        <div class="again"><span class="btn l"><span class="icon">replay</span>Смотреть снова</span></div>
+      </div>
+      <div class="spec">Вместо круга 84 — кнопка «Смотреть снова» 48 px по центру (336…384), inverseSurface / inverseOnSurface, иконка replay. Прогресс 100%, таймкод равен длительности.</div>
+    </div>
+    <div class="shot">
+      <div class="name">Player / Конец видео / Похожие видео — ПРЕДЛОЖЕНИЕ, в ТЗ нет</div>
+      <div class="frame video dark" id="player-ended-related"><div class="vid v-night"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="dim d55"></div><div class="scrim-top"></div><div class="scrim-bottom"></div>
+        <span class="ibtn on-video p-back "><span class="icon">arrow_back</span></span>
+        <div class="p-title title-l clamp1">Ночная съёмка Млечного Пути: как выбрать место и настройки камеры</div>
+        <div class="p-sub body-s clamp1">Астрофото без границ • 720p</div>
+        <span class="tc l">12:48</span>
+        <div class="slider on-video seek ">
+          <div class="track"></div><div class="buffer" style="width:100%"></div><div class="fill" style="width:100%"></div>
+          <div class="thumb" style="left:100%"></div>
+        </div>
+        <span class="tc r">12:48</span>
+        <div class="p-row l">
+          <span class="ibtn on-video "><span class="icon">replay_10</span></span>
+          <span class="ibtn on-video "><span class="icon">forward_10</span></span>
+          <span class="ibtn on-video"><span class="icon">volume_up</span></span>
+          <div class="slider on-video vol"><div class="track"></div><div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div></div>
+        </div>
+        <div class="p-row r">
+          <span class="ibtn on-video "><span class="icon ">thumb_up</span></span>
+          <div class="tap"><span class="chip on-video ">720p</span></div>
+          <div class="tap"><span class="chip on-video "><span class="icon">gpp_good</span>SNI-обход</span></div>
+          <div class="tap"><span class="ibtn on-video "><span class="icon">more_vert</span></span></div>
+        </div>
+        <div class="again" style="top:300px"><span class="btn l"><span class="icon">replay</span>Смотреть снова</span></div>
+        <div class="rel-title title-s">Похожие видео</div>
+        <div class="rel"><div class="rc"><div class="cv"><div class="th t5"></div></div><div class="t">Северное сияние в Мурманске: полная ночь</div></div><div class="rc"><div class="cv"><div class="th t2"></div></div><div class="t">Таймлапс звёздного неба — 4 часа за 4 минуты</div></div><div class="rc"><div class="cv"><div class="th t3"></div></div><div class="t">Как снимать ночной город без штатива</div></div><div class="rc"><div class="cv"><div class="th t7"></div></div><div class="t">Обзор светосильных объективов до 30 000 ₽</div></div></div>
+        <div class="tag">Предложение · не входит в ТЗ §4.4</div>
+      </div>
+      <div class="spec">Вариант, не основной макет. Кадр затемнён #000 55% (иначе подпись над скримом не проходит по контрасту). «Смотреть снова» поднята на y=300. Заголовок titleSmall #fff в 24,412; 4 карточки 176×99, радиус 12, зазор 12, название 1 строка labelMedium. Ниже — дорожка и ряд без изменений.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Player / Меню качества</div>
+      <div class="frame video dark" id="player-quality-menu"><div class="vid v-night"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="scrim-top"></div><div class="scrim-bottom"></div>
+        <span class="ibtn on-video p-back "><span class="icon">arrow_back</span></span>
+        <div class="p-title title-l clamp1">Ночная съёмка Млечного Пути: как выбрать место и настройки камеры</div>
+        <div class="p-sub body-s clamp1">Астрофото без границ • 720p</div>
+        <div class="center-btn"><span class="icon">pause</span></div>
+        <span class="tc l">04:21</span>
+        <div class="slider on-video seek ">
+          <div class="track"></div><div class="buffer" style="width:52%"></div><div class="fill" style="width:34%"></div>
+          <div class="thumb" style="left:34%"></div>
+        </div>
+        <span class="tc r">12:48</span>
+        <div class="p-row l">
+          <span class="ibtn on-video "><span class="icon">replay_10</span></span>
+          <span class="ibtn on-video "><span class="icon">forward_10</span></span>
+          <span class="ibtn on-video"><span class="icon">volume_up</span></span>
+          <div class="slider on-video vol"><div class="track"></div><div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div></div>
+        </div>
+        <div class="p-row r">
+          <span class="ibtn on-video "><span class="icon ">thumb_up</span></span>
+          <div class="tap"><span class="chip on-video is-open">720p</span><div class="menu p-menu" style="left:0; width:200px"><div class="li "><span class="gap"></span><span class="main">Авто</span></div><div class="li "><span class="gap"></span><span class="main">1080p</span></div><div class="li is-selected"><span class="icon">check</span><span class="main">720p</span></div><div class="li "><span class="gap"></span><span class="main">480p</span></div><div class="li "><span class="gap"></span><span class="main">360p</span></div></div></div>
+          <div class="tap"><span class="chip on-video "><span class="icon">gpp_good</span>SNI-обход</span></div>
+          <div class="tap"><span class="ibtn on-video "><span class="icon">more_vert</span></span></div>
+        </div>
+      </div>
+      <div class="spec">Menu M3 над чипом «720p»: ширина 200, surfaceContainer, радиус 16, паддинг 8/0, пункты 48 px bodyLarge. Низ меню — y=600: на 8 px выше плашки таймкода (608), поэтому ни дорожка, ни таймкоды не перекрыты. Выбранный — галочка + secondaryContainer / onSecondaryContainer. Тень — только у меню. Чип-якорь подсвечен #fff 28%.</div>
+    </div>
+    <div class="shot">
+      <div class="name">Player / Меню «ещё»</div>
+      <div class="frame video dark" id="player-more-menu"><div class="vid v-night"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="scrim-top"></div><div class="scrim-bottom"></div>
+        <span class="ibtn on-video p-back "><span class="icon">arrow_back</span></span>
+        <div class="p-title title-l clamp1">Ночная съёмка Млечного Пути: как выбрать место и настройки камеры</div>
+        <div class="p-sub body-s clamp1">Астрофото без границ • 720p</div>
+        <div class="center-btn"><span class="icon">pause</span></div>
+        <span class="tc l">04:21</span>
+        <div class="slider on-video seek ">
+          <div class="track"></div><div class="buffer" style="width:52%"></div><div class="fill" style="width:34%"></div>
+          <div class="thumb" style="left:34%"></div>
+        </div>
+        <span class="tc r">12:48</span>
+        <div class="p-row l">
+          <span class="ibtn on-video "><span class="icon">replay_10</span></span>
+          <span class="ibtn on-video "><span class="icon">forward_10</span></span>
+          <span class="ibtn on-video"><span class="icon">volume_up</span></span>
+          <div class="slider on-video vol"><div class="track"></div><div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div></div>
+        </div>
+        <div class="p-row r">
+          <span class="ibtn on-video "><span class="icon ">thumb_up</span></span>
+          <div class="tap"><span class="chip on-video ">720p</span></div>
+          <div class="tap"><span class="chip on-video "><span class="icon">gpp_good</span>SNI-обход</span></div>
+          <div class="tap"><span class="ibtn on-video is-open"><span class="icon">more_vert</span></span><div class="menu p-menu" style="right:0; width:304px"><div class="li "><span class="icon">speed</span><span class="main">Скорость</span><span class="val">Обычная</span></div><div class="li "><span class="icon">subtitles</span><span class="main">Субтитры</span><span class="val">Выкл</span></div><div class="li "><span class="icon">sync</span><span class="main">Сдвиг звука</span><span class="val">0 мс</span></div></div></div>
+        </div>
+      </div>
+      <div class="spec">Меню над more_vert, выровнено по правому краю кнопки: ширина 304, пункты 48 px — иконка 24 onSurfaceVariant, название bodyLarge, текущее значение bodyMedium onSurfaceVariant справа. Низ меню — y=600, таймкод «12:48» остаётся видимым.</div>
+    </div>
+    <div class="shot">
+      <div class="name">Player / Лайк активен + тост</div>
+      <div class="frame video dark" id="player-liked"><div class="vid v-night"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="scrim-top"></div><div class="scrim-bottom"></div>
+        <span class="ibtn on-video p-back "><span class="icon">arrow_back</span></span>
+        <div class="p-title title-l clamp1">Ночная съёмка Млечного Пути: как выбрать место и настройки камеры</div>
+        <div class="p-sub body-s clamp1">Астрофото без границ • 720p</div>
+        <div class="center-btn"><span class="icon">pause</span></div>
+        <span class="tc l">04:21</span>
+        <div class="slider on-video seek ">
+          <div class="track"></div><div class="buffer" style="width:52%"></div><div class="fill" style="width:34%"></div>
+          <div class="thumb" style="left:34%"></div>
+        </div>
+        <span class="tc r">12:48</span>
+        <div class="p-row l">
+          <span class="ibtn on-video "><span class="icon">replay_10</span></span>
+          <span class="ibtn on-video "><span class="icon">forward_10</span></span>
+          <span class="ibtn on-video"><span class="icon">volume_up</span></span>
+          <div class="slider on-video vol"><div class="track"></div><div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div></div>
+        </div>
+        <div class="p-row r">
+          <span class="ibtn on-video is-selected"><span class="icon fill">thumb_up</span></span>
+          <div class="tap"><span class="chip on-video ">720p</span></div>
+          <div class="tap"><span class="chip on-video "><span class="icon">gpp_good</span>SNI-обход</span></div>
+          <div class="tap"><span class="ibtn on-video "><span class="icon">more_vert</span></span></div>
+        </div>
+        <div class="snackbar p-toast">Учтём в рекомендациях</div>
+      </div>
+      <div class="spec">Лайк: залитая thumb_up, цвет primary. Тост — snackbar inverseSurface, высота 48, по центру, y=536…584 (над дорожкой, чтобы не перекрывать ряд кнопок), автоскрытие 3 с.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Player / Фокус геймпада на дорожке</div>
+      <div class="frame video dark" id="player-focus-seek"><div class="vid v-night"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="scrim-top"></div><div class="scrim-bottom"></div>
+        <span class="ibtn on-video p-back "><span class="icon">arrow_back</span></span>
+        <div class="p-title title-l clamp1">Ночная съёмка Млечного Пути: как выбрать место и настройки камеры</div>
+        <div class="p-sub body-s clamp1">Астрофото без границ • 720p</div>
+        <div class="center-btn"><span class="icon">pause</span></div>
+        <span class="tc l">04:21</span>
+        <div class="slider on-video seek is-focus">
+          <div class="track"></div><div class="buffer" style="width:52%"></div><div class="fill" style="width:34%"></div>
+          <div class="thumb" style="left:34%"></div><div class="value" style="left:34%">04:21</div>
+        </div>
+        <span class="tc r">12:48</span>
+        <div class="p-row l">
+          <span class="ibtn on-video "><span class="icon">replay_10</span></span>
+          <span class="ibtn on-video "><span class="icon">forward_10</span></span>
+          <span class="ibtn on-video"><span class="icon">volume_up</span></span>
+          <div class="slider on-video vol"><div class="track"></div><div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div></div>
+        </div>
+        <div class="p-row r">
+          <span class="ibtn on-video "><span class="icon ">thumb_up</span></span>
+          <div class="tap"><span class="chip on-video ">720p</span></div>
+          <div class="tap"><span class="chip on-video "><span class="icon">gpp_good</span>SNI-обход</span></div>
+          <div class="tap"><span class="ibtn on-video "><span class="icon">more_vert</span></span></div>
+        </div>
+      </div>
+      <div class="spec">Линия, буфер и прогресс — 6 px. Ползунок 20 px primary + белое кольцо 3 px + тёмная обводка 2 px. Подложка фокуса — primary 12% (полная заливка primaryContainer скрывала бы прогресс). Value label над ползунком: inverseSurface, labelMedium, текущее время.</div>
+    </div>
+    <div class="shot">
+      <div class="name">Player / Фокус на кнопке ряда</div>
+      <div class="frame video dark" id="player-focus-button"><div class="vid v-night"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="scrim-top"></div><div class="scrim-bottom"></div>
+        <span class="ibtn on-video p-back "><span class="icon">arrow_back</span></span>
+        <div class="p-title title-l clamp1">Ночная съёмка Млечного Пути: как выбрать место и настройки камеры</div>
+        <div class="p-sub body-s clamp1">Астрофото без границ • 720p</div>
+        <div class="center-btn"><span class="icon">pause</span></div>
+        <span class="tc l">04:21</span>
+        <div class="slider on-video seek ">
+          <div class="track"></div><div class="buffer" style="width:52%"></div><div class="fill" style="width:34%"></div>
+          <div class="thumb" style="left:34%"></div>
+        </div>
+        <span class="tc r">12:48</span>
+        <div class="p-row l">
+          <span class="ibtn on-video "><span class="icon">replay_10</span></span>
+          <span class="ibtn on-video is-focus"><span class="icon">forward_10</span></span>
+          <span class="ibtn on-video"><span class="icon">volume_up</span></span>
+          <div class="slider on-video vol"><div class="track"></div><div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div></div>
+        </div>
+        <div class="p-row r">
+          <span class="ibtn on-video "><span class="icon ">thumb_up</span></span>
+          <div class="tap"><span class="chip on-video ">720p</span></div>
+          <div class="tap"><span class="chip on-video "><span class="icon">gpp_good</span>SNI-обход</span></div>
+          <div class="tap"><span class="ibtn on-video "><span class="icon">more_vert</span></span></div>
+        </div>
+      </div>
+      <div class="spec">Фокус на forward_10: заливка primaryContainer, иконка onPrimaryContainer, кольцо 3 px primary с зазором 2 px; зазор и 2 px снаружи кольца — #000 70%, чтобы кольцо читалось на любом кадре. Соседние кнопки не перекрываются (зазор 8 > 7).</div>
+    </div>
+    <div class="shot">
+      <div class="name">Player / Фокус на чипе / Светлый кадр</div>
+      <div class="frame video dark" id="player-focus-chip"><div class="vid v-snow"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="scrim-top"></div><div class="scrim-bottom"></div>
+        <span class="ibtn on-video p-back "><span class="icon">arrow_back</span></span>
+        <div class="p-title title-l clamp1">Большое путешествие по зимнему Алтаю на машине: перевалы, ледяные озёра, ночёвки в палатке и съёмка рассвета над долиной</div>
+        <div class="p-sub body-s clamp1">Дороги и горы • 720p</div>
+        <div class="center-btn"><span class="icon">pause</span></div>
+        <span class="tc l">04:21</span>
+        <div class="slider on-video seek ">
+          <div class="track"></div><div class="buffer" style="width:52%"></div><div class="fill" style="width:34%"></div>
+          <div class="thumb" style="left:34%"></div>
+        </div>
+        <span class="tc r">12:48</span>
+        <div class="p-row l">
+          <span class="ibtn on-video "><span class="icon">replay_10</span></span>
+          <span class="ibtn on-video "><span class="icon">forward_10</span></span>
+          <span class="ibtn on-video"><span class="icon">volume_up</span></span>
+          <div class="slider on-video vol"><div class="track"></div><div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div></div>
+        </div>
+        <div class="p-row r">
+          <span class="ibtn on-video "><span class="icon ">thumb_up</span></span>
+          <div class="tap"><span class="chip on-video ">720p</span></div>
+          <div class="tap"><span class="chip on-video is-focus"><span class="icon">gpp_good</span>SNI-обход</span></div>
+          <div class="tap"><span class="ibtn on-video "><span class="icon">more_vert</span></span></div>
+        </div>
+      </div>
+      <div class="spec">Тот же фокус на чипе статуса, на светлом кадре: primaryContainer + onPrimaryContainer (10,3:1), кольцо 3 px primary между двумя тёмными обводками.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Player / Диалог «Закрыть видео?»</div>
+      <div class="frame video dark" id="player-close-dialog"><div class="vid v-night"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="scrim-top"></div><div class="scrim-bottom"></div>
+        <span class="ibtn on-video p-back "><span class="icon">arrow_back</span></span>
+        <div class="p-title title-l clamp1">Ночная съёмка Млечного Пути: как выбрать место и настройки камеры</div>
+        <div class="p-sub body-s clamp1">Астрофото без границ • 720p</div>
+        <div class="center-btn"><span class="icon">pause</span></div>
+        <span class="tc l">04:21</span>
+        <div class="slider on-video seek ">
+          <div class="track"></div><div class="buffer" style="width:52%"></div><div class="fill" style="width:34%"></div>
+          <div class="thumb" style="left:34%"></div>
+        </div>
+        <span class="tc r">12:48</span>
+        <div class="p-row l">
+          <span class="ibtn on-video "><span class="icon">replay_10</span></span>
+          <span class="ibtn on-video "><span class="icon">forward_10</span></span>
+          <span class="ibtn on-video"><span class="icon">volume_up</span></span>
+          <div class="slider on-video vol"><div class="track"></div><div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div></div>
+        </div>
+        <div class="p-row r">
+          <span class="ibtn on-video "><span class="icon ">thumb_up</span></span>
+          <div class="tap"><span class="chip on-video ">720p</span></div>
+          <div class="tap"><span class="chip on-video "><span class="icon">gpp_good</span>SNI-обход</span></div>
+          <div class="tap"><span class="ibtn on-video "><span class="icon">more_vert</span></span></div>
+        </div>
+        <div class="scrim"></div>
+        <div class="dialog p-dialog">
+          <div class="headline-s">Закрыть видео?</div>
+          <p class="body-m">Воспроизведение остановится.</p>
+          <div class="actions"><span class="btn text">Отмена</span><span class="btn text">Закрыть</span></div>
+        </div>
+      </div>
+      <div class="spec">B во время воспроизведения. Скрим #000 50% на весь кадр, диалог 400 в 440,264: surfaceContainerHigh, радиус 28, паддинг 24. Заголовок headlineSmall, текст bodyMedium onSurfaceVariant, кнопки text (primary), зазор 8.</div>
+    </div>
+    <div class="shot">
+      <div class="name">Player / Чип статуса / Обход DPI: прокси</div>
+      <div class="frame video dark" id="player-proxy-chip"><div class="vid v-night"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="scrim-top"></div><div class="scrim-bottom"></div>
+        <span class="ibtn on-video p-back "><span class="icon">arrow_back</span></span>
+        <div class="p-title title-l clamp1">Ночная съёмка Млечного Пути: как выбрать место и настройки камеры</div>
+        <div class="p-sub body-s clamp1">Астрофото без границ • 720p</div>
+        <div class="center-btn"><span class="icon">pause</span></div>
+        <span class="tc l">04:21</span>
+        <div class="slider on-video seek ">
+          <div class="track"></div><div class="buffer" style="width:52%"></div><div class="fill" style="width:34%"></div>
+          <div class="thumb" style="left:34%"></div>
+        </div>
+        <span class="tc r">12:48</span>
+        <div class="p-row l">
+          <span class="ibtn on-video "><span class="icon">replay_10</span></span>
+          <span class="ibtn on-video "><span class="icon">forward_10</span></span>
+          <span class="ibtn on-video"><span class="icon">volume_up</span></span>
+          <div class="slider on-video vol"><div class="track"></div><div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div></div>
+        </div>
+        <div class="p-row r">
+          <span class="ibtn on-video "><span class="icon ">thumb_up</span></span>
+          <div class="tap"><span class="chip on-video ">720p</span></div>
+          <div class="tap"><span class="chip on-video "><span class="icon">shield</span>Обход DPI: прокси</span></div>
+          <div class="tap"><span class="ibtn on-video "><span class="icon">more_vert</span></span></div>
+        </div>
+      </div>
+      <div class="spec">Длинный вариант чипа: иконка shield 18 + «Обход DPI: прокси». Правая группа растёт влево, до слайдера громкости остаётся больше 400 px.</div>
+    </div>
+    <div class="shot">
+      <div class="name">Player / Чип статуса / Обход выключен</div>
+      <div class="frame video dark" id="player-proxy-chip-off"><div class="vid v-night"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="scrim-top"></div><div class="scrim-bottom"></div>
+        <span class="ibtn on-video p-back "><span class="icon">arrow_back</span></span>
+        <div class="p-title title-l clamp1">Ночная съёмка Млечного Пути: как выбрать место и настройки камеры</div>
+        <div class="p-sub body-s clamp1">Астрофото без границ • 720p</div>
+        <div class="center-btn"><span class="icon">pause</span></div>
+        <span class="tc l">04:21</span>
+        <div class="slider on-video seek ">
+          <div class="track"></div><div class="buffer" style="width:52%"></div><div class="fill" style="width:34%"></div>
+          <div class="thumb" style="left:34%"></div>
+        </div>
+        <span class="tc r">12:48</span>
+        <div class="p-row l">
+          <span class="ibtn on-video "><span class="icon">replay_10</span></span>
+          <span class="ibtn on-video "><span class="icon">forward_10</span></span>
+          <span class="ibtn on-video"><span class="icon">volume_up</span></span>
+          <div class="slider on-video vol"><div class="track"></div><div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div></div>
+        </div>
+        <div class="p-row r">
+          <span class="ibtn on-video "><span class="icon ">thumb_up</span></span>
+          <div class="tap"><span class="chip on-video ">720p</span></div>
+          <div class="tap"><span class="chip on-video off ">Без обхода</span></div>
+          <div class="tap"><span class="ibtn on-video "><span class="icon">more_vert</span></span></div>
+        </div>
+      </div>
+      <div class="spec">Рекомендация: чип не прятать, а показывать «Без обхода» — контурный (обводка 1 px #fff 50%, без заливки и без иконки, текст #fff 86%). Причина: ряд не меняет геометрию и порядок фокуса, а при зависании видео сразу видно, что обход выключен.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Player / Redline</div>
+      <div class="frame video dark" id="player-redline"><div class="vid v-night"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="scrim-top"></div><div class="scrim-bottom"></div>
+        <span class="ibtn on-video p-back "><span class="icon">arrow_back</span></span>
+        <div class="p-title title-l clamp1">Ночная съёмка Млечного Пути: как выбрать место и настройки камеры</div>
+        <div class="p-sub body-s clamp1">Астрофото без границ • 720p</div>
+        <div class="center-btn"><span class="icon">pause</span></div>
+        <span class="tc l">04:21</span>
+        <div class="slider on-video seek ">
+          <div class="track"></div><div class="buffer" style="width:52%"></div><div class="fill" style="width:34%"></div>
+          <div class="thumb" style="left:34%"></div>
+        </div>
+        <span class="tc r">12:48</span>
+        <div class="p-row l">
+          <span class="ibtn on-video "><span class="icon">replay_10</span></span>
+          <span class="ibtn on-video "><span class="icon">forward_10</span></span>
+          <span class="ibtn on-video"><span class="icon">volume_up</span></span>
+          <div class="slider on-video vol"><div class="track"></div><div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div><div class="redline below" style="inset:0"><span>слайдер 140</span></div></div>
+        </div>
+        <div class="p-row r">
+          <span class="ibtn on-video "><span class="icon ">thumb_up</span></span>
+          <div class="tap"><span class="chip on-video ">720p</span><div class="redline below" style="left:0; right:0; top:6px; height:36px"><span>чип 36</span></div></div>
+          <div class="tap"><span class="chip on-video "><span class="icon">gpp_good</span>SNI-обход</span></div>
+          <div class="tap"><span class="ibtn on-video "><span class="icon">more_vert</span></span></div>
+        </div>
+        <div class="safe"></div><div class="redline " style="left:0; top:0; width:1280px; height:190px"><span style="top:auto; bottom:4px; left:8px">scrim-top · высота 190 · #000 72% → 0%</span></div><div class="redline in" style="left:0; top:480px; width:1280px; height:240px"><span style="top:6px; left:8px">scrim-bottom · высота 240 · 0% → 86%</span></div><div class="redline below" style="left:20px; top:20px; width:48px; height:48px"><span>назад 48×48</span></div><div class="redline " style="left:76px; top:20px; width:904px; height:28px"><span style="top:6px; left:906px">titleLarge · x=76 · 904 × 28</span></div><div class="redline below" style="left:980px; top:76px; width:300px; height:0"><span>300 до правого края</span></div><div class="redline " style="left:598px; top:318px; width:84px; height:84px"><span>84×84 · #000 35% · иконка 40</span></div><div class="redline " style="left:96px; top:596px; width:1088px; height:44px"><span>зона нажатия 44 · линия 4 · ползунок 14 · буфер #fff 30% · прогресс primary</span></div><div class="redline in" style="left:24px; top:648px; width:1232px; height:48px"><span style="top:17px; left:330px">ряд кнопок · y = 720 − 72 = 648 · высота 48 · зазор 8 · поля 24</span></div><div class="redline cyan" style="left:64px; top:36px; width:0; height:0"><span style="top:174px; left:936px">безопасная зона ТВ 64 / 36</span></div>
+      </div>
+      <div class="spec">Розовые рамки — размеры по ТЗ §4.4, голубой пунктир — безопасная зона ТВ (64 / 36). Видно, что назад, таймкоды, края ряда кнопок и нижние 12 px ряда попадают в 5%-зону — координаты заданы ТЗ и сохранены, список в отчёте.</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

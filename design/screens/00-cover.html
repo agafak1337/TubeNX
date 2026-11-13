@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>TubeNX — 00 Cover</title>
+<link rel="stylesheet" href="../assets/base.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/app.css">
+<script src="../assets/frame.js"></script>
+<style>
+  .cv-word { font: 400 128px/128px "Google Sans"; letter-spacing: -3px; color: var(--on-surface); }
+  .cv-meta { display: flex; gap: 8px; }
+  .cv-pill { height: 32px; padding: 0 16px; border-radius: 999px; display: inline-flex; align-items: center;
+             background: var(--surface-container-high); color: var(--on-surface); font: 500 14px/20px "Google Sans"; letter-spacing: .1px; }
+  .cv-pill.accent { background: var(--primary-container); color: var(--on-primary-container); }
+  .cv-seed { display: flex; align-items: center; gap: 20px; }
+  .cv-seed .sw { width: 96px; height: 96px; border-radius: 30%; background: var(--seed-red); flex: none; }
+  .cv-tones { display: flex; gap: 8px; margin-top: 12px; }
+  .cv-tones i { width: 28px; height: 28px; border-radius: 999px; display: block; font-style: normal; }
+  .cv-pages { position: absolute; left: 792px; top: 56px; width: 424px; height: 608px; border-radius: 28px;
+              background: var(--surface-container-low); padding: 28px 28px 20px; }
+  .cv-pages .pg { display: flex; align-items: center; gap: 16px; height: 66px; border-top: 1px solid var(--outline-variant); }
+  .cv-pages .pg:first-of-type { border-top: 0; }
+  .cv-pages .num { width: 40px; height: 40px; border-radius: 12px; background: var(--surface-container-highest); color: var(--primary);
+                   display: flex; align-items: center; justify-content: center; font: 500 14px/20px "Google Sans"; flex: none; }
+  .cv-pages .pg.cur .num { background: var(--primary); color: var(--on-primary); }
+</style>
+</head>
+<body>
+<div class="board">
+  <div>
+    <div class="board-title">00 Cover</div>
+    <div class="board-sub">Обложка файла: название, версия, дата, seed-цвет, состав страниц.</div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Cover / Тёмная</div>
+      <div class="frame dark" id="cover">
+        <span class="mark xl abs" style="left:64px; top:56px"><span class="icon">play_arrow</span></span>
+
+        <div class="cv-word abs" style="left:58px; top:188px">TubeNX</div>
+        <div class="headline-m abs" style="left:64px; top:332px">Дизайн-система · Material 3 Expressive</div>
+        <div class="body-l muted abs" style="left:64px; top:376px; width:640px">YouTube-клиент для Nintendo Switch. Канвас 1280×720, тач и геймпад.</div>
+
+        <div class="cv-meta abs" style="left:64px; top:428px">
+          <span class="cv-pill accent">Версия 1.0</span>
+          <span class="cv-pill">13.11.2026</span>
+          <span class="cv-pill">Тёмная и светлая темы</span>
+        </div>
+
+        <div class="cv-seed abs" style="left:64px; top:544px">
+          <div class="sw"></div>
+          <div>
+            <div class="label-m muted">Seed-цвет</div>
+            <div class="title-l">#C3002F</div>
+            <div class="cv-tones">
+              <i style="background:var(--primary)"></i>
+              <i style="background:var(--primary-container)"></i>
+              <i style="background:var(--secondary-container)"></i>
+              <i style="background:var(--tertiary)"></i>
+              <i style="background:var(--surface-container-highest)"></i>
+            </div>
+          </div>
+          <div class="body-m muted" style="width:300px; margin-left:20px; align-self:flex-end">Глубокий красный YouTube, приведённый к палитре HCT. Из него собраны все роли обеих тем.</div>
+        </div>
+
+        <div class="cv-pages">
+          <div class="overline" style="margin-bottom:12px">Страницы файла</div>
+          <div class="pg cur"><span class="num">00</span><div><div class="title-m">Cover</div><div class="body-s muted">Название, версия, дата, seed-цвет</div></div></div>
+          <div class="pg"><span class="num">01</span><div><div class="title-m">Tokens</div><div class="body-s muted">Цвет, типографика, формы, отступы, elevation</div></div></div>
+          <div class="pg"><span class="num">02</span><div><div class="title-m">Components</div><div class="body-s muted">Компоненты и состояния с redline</div></div></div>
+          <div class="pg"><span class="num">03</span><div><div class="title-m">Screens</div><div class="body-s muted">Splash, Home, Search, Settings и их состояния</div></div></div>
+          <div class="pg"><span class="num">04</span><div><div class="title-m">Player</div><div class="body-s muted">Контролы, ошибка, буферизация, меню качества</div></div></div>
+          <div class="pg"><span class="num">05</span><div><div class="title-m">TV</div><div class="body-s muted">Ключевые экраны в 1920×1080, safe area</div></div></div>
+          <div class="pg"><span class="num">06</span><div><div class="title-m">Icon</div><div class="body-s muted">1024, 256, 128, 64, 48 и монохром</div></div></div>
+          <div class="pg"><span class="num">07</span><div><div class="title-m">Motion</div><div class="body-s muted">Тайминги и кривые</div></div></div>
+        </div>
+      </div>
+      <div class="spec">Фрейм 1280×720, фон surface. Поля 64 слева/справа, 56 сверху/снизу. Марка 96 (squircle 30 %, primary / onPrimary). Слово «TubeNX» — Google Sans Regular 128/128. Подзаголовок headlineMedium, пояснение bodyLarge onSurfaceVariant.
+Образец seed 96×96 — единственный «сырой» цвет (#C3002F), рядом — производные роли: primary, primaryContainer, secondaryContainer, tertiary, surfaceContainerHighest.
+Список страниц: surfaceContainerLow, радиус 28, строка 62, разделитель outlineVariant 1 px. Интерактивных элементов нет.</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
