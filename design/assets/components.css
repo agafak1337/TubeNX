@@ -1,0 +1,149 @@
+/* TubeNX design — компоненты M3 Expressive. Только роли цвета, без blur и без теней на карточках.
+   Состояния задаются классами: .is-hover .is-focus .is-pressed .is-disabled .is-selected */
+
+/* ---------- State layer и фокус ---------- */
+.sl { position: relative; }
+.sl::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: currentColor; opacity: 0; pointer-events: none; }
+.sl.is-hover::after { opacity: .08; }
+.sl.is-pressed::after { opacity: .1; }
+.sl.is-focus::after { opacity: .1; }
+/* Фокус геймпада: 3 px primary снаружи с зазором 2 px (радиус = радиус элемента + 2) */
+.is-focus { outline: 3px solid var(--primary); outline-offset: 2px; }
+.is-disabled { opacity: .38; }
+
+/* ---------- Button ---------- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 24px;
+       border-radius: 999px; font: 500 14px/20px "Google Sans"; letter-spacing: .1px; white-space: nowrap; flex: none;
+       position: relative; border: 0; }
+.btn .icon { font-size: 18px; margin-left: -8px; }
+.btn .icon.end { margin-left: 0; margin-right: -8px; }
+.btn.s { height: 32px; padding: 0 16px; }
+.btn.l { height: 48px; padding: 0 28px; font-size: 16px; }
+.btn.l .icon { font-size: 20px; }
+.btn.filled   { background: var(--primary); color: var(--on-primary); }
+.btn.tonal    { background: var(--secondary-container); color: var(--on-secondary-container); }
+.btn.outlined { border: 1px solid var(--outline); color: var(--primary); }
+.btn.text     { color: var(--primary); padding: 0 12px; }
+.btn.text .icon { margin-left: 0; }
+.btn.text.danger { color: var(--error); }
+.btn.elevated { background: var(--surface-container-low); color: var(--primary); box-shadow: 0 1px 6px rgba(0,0,0,.3); }
+.btn::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: currentColor; opacity: 0; }
+.btn.is-hover::after { opacity: .08; }
+.btn.is-pressed::after, .btn.is-focus::after { opacity: .1; }
+/* Expressive: нажатая кнопка «сжимает» радиус */
+.btn.is-pressed { border-radius: 12px; }
+
+/* ---------- Icon button ---------- */
+.ibtn { width: 48px; height: 48px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center;
+        color: var(--on-surface-variant); position: relative; flex: none; }
+.ibtn.s40 { width: 40px; height: 40px; } .ibtn.s44 { width: 44px; height: 44px; }
+.ibtn.tonal  { background: var(--secondary-container); color: var(--on-secondary-container); }
+.ibtn.filled { background: var(--primary); color: var(--on-primary); }
+.ibtn.on-video { color: #fff; }
+.ibtn::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: currentColor; opacity: 0; }
+.ibtn.is-hover::after { opacity: .08; }
+.ibtn.is-pressed::after, .ibtn.is-focus::after { opacity: .1; }
+.ibtn.is-selected { color: var(--primary); }
+
+/* ---------- Chip ---------- */
+.chip { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 16px; border-radius: 999px;
+        border: 1px solid var(--outline-variant); color: var(--on-surface-variant);
+        font: 500 14px/20px "Google Sans"; letter-spacing: .1px; white-space: nowrap; flex: none; position: relative; }
+.chip .icon { font-size: 18px; margin-left: -8px; }
+.chip.is-selected { background: var(--secondary-container); color: var(--on-secondary-container); border-color: transparent; }
+.chip.is-hover { background: color-mix(in srgb, currentColor 8%, transparent); }
+.chip.is-pressed { background: color-mix(in srgb, currentColor 10%, transparent); }
+.chip.is-selected.is-hover, .chip.is-selected.is-pressed { background: color-mix(in srgb, var(--on-secondary-container) 8%, var(--secondary-container)); }
+/* Чип поверх видео */
+.chip.on-video { height: 36px; border: 0; background: rgba(255,255,255,.14); color: #fff; }
+/* Зона нажатия 48 px вокруг чипа 32 px */
+.chip-row { display: flex; gap: 8px; height: 48px; align-items: center; }
+
+/* ---------- Segmented button ---------- */
+.seg { display: flex; height: 40px; border-radius: 999px; border: 1px solid var(--outline); overflow: hidden; width: 100%; }
+.seg > div { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--on-surface);
+             font: 500 14px/20px "Google Sans"; letter-spacing: .1px; border-left: 1px solid var(--outline); position: relative; }
+.seg > div:first-child { border-left: 0; }
+.seg > div.is-selected { background: var(--secondary-container); color: var(--on-secondary-container); }
+.seg > div .icon { font-size: 18px; }
+.seg > div.is-focus { outline: none; box-shadow: inset 0 0 0 3px var(--primary); }
+.seg > div.is-hover { background: color-mix(in srgb, var(--on-surface) 8%, transparent); }
+.seg > div.is-selected.is-hover { background: color-mix(in srgb, var(--on-secondary-container) 8%, var(--secondary-container)); }
+
+/* ---------- Switch 52×32, thumb 24 (16 в выкл.) ---------- */
+.switch { width: 52px; height: 32px; border-radius: 999px; border: 2px solid var(--outline); background: var(--surface-container-highest);
+          position: relative; flex: none; }
+.switch::before { content: ""; position: absolute; top: 50%; left: 6px; width: 16px; height: 16px; margin-top: -8px;
+                  border-radius: 999px; background: var(--outline); }
+.switch.is-on { background: var(--primary); border-color: var(--primary); }
+.switch.is-on::before { left: 22px; width: 24px; height: 24px; margin-top: -12px; background: var(--on-primary); }
+.switch.is-on.with-icon::after { content: "check"; font-family: "Symbols"; font-feature-settings: "liga"; font-size: 16px; line-height: 16px;
+                                 position: absolute; left: 26px; top: 6px; color: var(--primary); }
+.switch.is-pressed::before { width: 28px; height: 28px; margin-top: -14px; left: 0; }
+.switch.is-on.is-pressed::before { left: 20px; }
+
+/* ---------- Slider ---------- */
+.slider { position: relative; height: 44px; flex: 1; }
+.slider .track { position: absolute; left: 0; right: 0; top: 50%; height: 4px; margin-top: -2px; border-radius: 999px; background: var(--surface-container-highest); }
+.slider .fill { position: absolute; left: 0; top: 50%; height: 4px; margin-top: -2px; border-radius: 999px; background: var(--primary); }
+.slider .thumb { position: absolute; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 999px; background: var(--primary); }
+.slider .value { position: absolute; bottom: 36px; transform: translateX(-50%); padding: 4px 10px; border-radius: 999px;
+                 background: var(--inverse-surface); color: var(--inverse-on-surface); font: 500 12px/16px "Google Sans"; white-space: nowrap; }
+.slider.is-focus { outline: none; }
+.slider.is-focus .track, .slider.is-focus .fill { height: 6px; margin-top: -3px; }
+.slider.is-focus .thumb { width: 20px; height: 20px; margin: -10px 0 0 -10px; box-shadow: 0 0 0 3px #fff; }
+.slider.on-video .track { background: rgba(255,255,255,.18); }
+.slider.on-video .buffer { position: absolute; left: 0; top: 50%; height: 4px; margin-top: -2px; border-radius: 999px; background: rgba(255,255,255,.3); }
+
+/* ---------- Search bar ---------- */
+.searchbar { height: 52px; border-radius: 26px; background: var(--surface-container-high); display: flex; align-items: center; gap: 12px;
+             padding: 0 16px; color: var(--on-surface-variant); font: 400 16px/24px "Google Sans"; flex: 1; position: relative; }
+.searchbar .text { flex: 1; color: var(--on-surface); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.searchbar .placeholder { flex: 1; }
+
+/* ---------- Card / контейнеры ---------- */
+.card { border-radius: 20px; background: var(--surface-container-low); padding: 20px; position: relative; }
+.card.outlined { background: transparent; border: 1px solid var(--outline-variant); }
+.card.elevated { box-shadow: 0 2px 10px rgba(0,0,0,.32); }
+.card.error { background: var(--error-container); color: var(--on-error-container); }
+
+/* ---------- List item ---------- */
+.li { display: flex; align-items: center; gap: 16px; min-height: 48px; padding: 0 16px; color: var(--on-surface); position: relative; }
+.li.two { min-height: 64px; } .li.three { min-height: 84px; align-items: flex-start; padding-top: 12px; }
+.li > .icon { color: var(--on-surface-variant); }
+.li .main { flex: 1; min-width: 0; }
+.li .sub { font: 400 12px/16px "Google Sans"; color: var(--on-surface-variant); }
+.li.is-selected { background: var(--secondary-container); color: var(--on-secondary-container); }
+.li.is-hover { background: color-mix(in srgb, var(--on-surface) 8%, transparent); }
+.li.is-focus { outline-offset: -3px; background: color-mix(in srgb, var(--primary) 10%, transparent); }
+.divider { height: 1px; background: var(--outline-variant); }
+
+/* ---------- Menu / всплывающие поверхности (единственное место для тени) ---------- */
+.menu { border-radius: 16px; background: var(--surface-container); padding: 8px 0; box-shadow: 0 2px 10px rgba(0,0,0,.32); overflow: hidden; color: var(--on-surface); }
+.dialog { width: 400px; border-radius: 28px; background: var(--surface-container-high); padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,.34); color: var(--on-surface); }
+.dialog .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+.scrim { position: absolute; inset: 0; background: rgba(0,0,0,.5); }
+.snackbar { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); min-height: 48px; border-radius: 12px; padding: 0 8px 0 16px;
+            display: flex; align-items: center; gap: 12px; background: var(--inverse-surface); color: var(--inverse-on-surface);
+            font: 400 14px/20px "Google Sans"; box-shadow: 0 2px 10px rgba(0,0,0,.32); white-space: nowrap; }
+.snackbar .action { color: var(--inverse-primary); font-weight: 500; padding: 0 12px; height: 48px; display: flex; align-items: center; }
+
+/* ---------- Progress ---------- */
+.linear { height: 2px; border-radius: 999px; background: var(--surface-container-highest); position: relative; overflow: hidden; }
+.linear.h4 { height: 4px; }
+.linear > i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--primary); }
+.spinner { width: 22px; height: 22px; border-radius: 50%; flex: none;
+           background: conic-gradient(from 40deg, transparent 0 28%, var(--primary) 28% 100%);
+           -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
+                   mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); }
+.spinner.s20 { width: 20px; height: 20px; } .spinner.s32 { width: 32px; height: 32px; }
+.spinner.on-video { background: conic-gradient(from 40deg, transparent 0 28%, #fff 28% 100%); }
+
+/* ---------- Skeleton: плоская заливка, пульсация opacity 0.6→1.0 за 1.2 с ---------- */
+.sk { background: var(--surface-container-high); border-radius: 8px; }
+
+/* ---------- Бренд-марка: squircle primary + play ---------- */
+.mark { width: 32px; height: 32px; border-radius: 30%; background: var(--primary); color: var(--on-primary);
+        display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.mark .icon { font-family: "Symbols Fill"; font-size: 22px; }
+.mark.xl { width: 96px; height: 96px; } .mark.xl .icon { font-size: 64px; }

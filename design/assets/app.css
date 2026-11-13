@@ -1,0 +1,96 @@
+/* TubeNX design — составные блоки экранов (общие для Home / Search / Settings / Player). */
+
+/* ---------- Top app bar 72 ---------- */
+.appbar { position: absolute; left: 0; right: 0; top: 0; height: 72px; padding: 0 24px; display: flex; align-items: center; gap: 12px; background: var(--surface); }
+.appbar .spacer { flex: 1; }
+.appbar .back { margin-left: -4px; }
+.net-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--tertiary); margin-right: 4px; flex: none; }
+
+/* ---------- Заголовок секции ---------- */
+.section-title { font: 500 14px/20px "Google Sans"; letter-spacing: .1px; color: var(--on-surface); }
+
+/* ---------- Сетка видео: 4 × 296, зазор 16, поля 24 ---------- */
+.grid { display: grid; grid-template-columns: repeat(4, 296px); gap: 24px 16px; padding: 0 24px; }
+.grid.c3 { grid-template-columns: repeat(3, 296px); }
+.grid.c2 { grid-template-columns: repeat(2, 296px); }
+
+/* ---------- Карточка видео 296 × 256 (высота не зависит от длины названия) ---------- */
+.vcard { width: 296px; height: 256px; position: relative; }
+.vcard .cover { width: 296px; height: 166px; border-radius: 16px; position: relative; overflow: hidden; background: var(--surface-container-high); }
+.vcard .title { margin-top: 8px; height: 44px; font: 500 16px/22px "Google Sans"; letter-spacing: .1px; color: var(--on-surface);
+                display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.vcard .channel, .vcard .meta { font: 400 12px/16px "Google Sans"; letter-spacing: .2px; color: var(--on-surface-variant);
+                                white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vcard .channel { margin-top: 4px; }
+.vcard .meta { margin-top: 2px; }
+.badge { position: absolute; right: 8px; bottom: 8px; padding: 2px 6px; border-radius: 6px; background: rgba(0,0,0,.7); color: #fff;
+         font: 500 12px/16px "Google Sans"; letter-spacing: .3px; }
+.badge.live { background: var(--error-container); color: var(--on-error-container); }
+/* Hover / фокус: обложка светлеет на 6 %, сверху play 48. Карточка не двигается. */
+.vcard.is-hover .cover::after, .vcard.is-focus .cover::after { content: ""; position: absolute; inset: 0; background: rgba(255,255,255,.06); }
+.vcard .play { display: none; position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%;
+               background: rgba(0,0,0,.45); color: #fff; align-items: center; justify-content: center; z-index: 2; }
+.vcard.is-hover .play, .vcard.is-focus .play { display: flex; }
+.vcard.is-pressed .cover::after { content: ""; position: absolute; inset: 0; background: rgba(255,255,255,.1); }
+/* Фокус: кольцо 3 px primary вокруг обложки + подложка primaryContainer под текстом — виден на любой обложке */
+.vcard.is-focus { outline: none; }
+.vcard.is-focus::before { content: ""; position: absolute; inset: -8px; border-radius: 22px; background: var(--primary-container); z-index: 0; }
+.vcard.is-focus > * { position: relative; z-index: 1; }
+.vcard.is-focus .cover { outline: 3px solid var(--primary); outline-offset: 2px; }
+.vcard.is-focus .title { color: var(--on-primary-container); }
+.vcard.is-focus .channel, .vcard.is-focus .meta { color: var(--on-primary-container); opacity: .86; }
+
+/* ---------- «Продолжить просмотр»: карточка 240 × 135 ---------- */
+.ccard { width: 240px; flex: none; position: relative; }
+.ccard .cover { width: 240px; height: 135px; border-radius: 12px; position: relative; overflow: hidden; background: var(--surface-container-high); }
+.ccard .watch { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255,255,255,.3); }
+.ccard .watch > i { display: block; height: 100%; background: var(--primary); }
+.ccard .title { margin-top: 6px; font: 500 14px/20px "Google Sans"; color: var(--on-surface); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ccard.is-focus { outline: none; }
+.ccard.is-focus .cover { outline: 3px solid var(--primary); outline-offset: 2px; }
+
+/* ---------- Обложки-заглушки (условные кадры; на устройстве — картинки YouTube) ---------- */
+.th { position: absolute; inset: 0; }
+.th::before { content: ""; position: absolute; right: -8%; top: -30%; width: 46%; aspect-ratio: 1; border-radius: 50%; background: rgba(255,255,255,.14); }
+.th::after  { content: ""; position: absolute; left: -10%; bottom: -45%; width: 60%; aspect-ratio: 1; border-radius: 50%; background: rgba(0,0,0,.18); }
+.th.t1 { background: linear-gradient(120deg, #35591c, #17683a); }
+.th.t2 { background: linear-gradient(120deg, #4d2096, #7d1a52); }
+.th.t3 { background: linear-gradient(120deg, #1b6480, #17506b); }
+.th.t4 { background: linear-gradient(120deg, #9a3412, #7c2d12); }
+.th.t5 { background: linear-gradient(120deg, #1e3a8a, #0f766e); }
+.th.t6 { background: linear-gradient(120deg, #b02a2a, #7a4a5a); }
+.th.t7 { background: linear-gradient(120deg, #6b5b12, #8a4b0f); }
+.th.t8 { background: linear-gradient(120deg, #3b3f4a, #1f2937); }
+
+/* ---------- Скелетон карточки ---------- */
+.vcard.skeleton .cover { background: var(--surface-container-high); }
+.vcard.skeleton .l1 { margin-top: 12px; height: 16px; width: 264px; }
+.vcard.skeleton .l2 { margin-top: 8px; height: 16px; width: 180px; }
+.vcard.skeleton .l3 { margin-top: 10px; height: 12px; width: 120px; }
+
+/* ---------- Пустое состояние ---------- */
+.empty { position: absolute; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.empty .glyph { color: var(--outline); }
+.empty h2 { font: 400 28px/36px "Google Sans"; margin-top: 16px; color: var(--on-surface); }
+.empty p { font: 400 14px/20px "Google Sans"; letter-spacing: .15px; margin-top: 8px; color: var(--on-surface-variant); }
+.empty .btn { margin-top: 24px; }
+
+/* ---------- Карточка ошибки 560 ---------- */
+.errcard { position: absolute; left: 360px; width: 560px; border-radius: 28px; padding: 24px; background: var(--error-container); color: var(--on-error-container); }
+.errcard .head { display: flex; gap: 16px; align-items: flex-start; }
+.errcard .head .icon { font-size: 32px; }
+.errcard h3 { font: 500 22px/28px "Google Sans"; }
+.errcard p { font: 400 14px/20px "Google Sans"; letter-spacing: .15px; margin-top: 4px;
+             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.errcard .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+.errcard .btn.filled { background: var(--on-error-container); color: var(--error-container); }
+.errcard .btn.text { color: var(--on-error-container); }
+
+/* ---------- Плеер ---------- */
+.scrim-top { position: absolute; left: 0; right: 0; top: 0; height: 190px; background: linear-gradient(rgba(0,0,0,.72), rgba(0,0,0,0)); }
+.scrim-bottom { position: absolute; left: 0; right: 0; bottom: 0; height: 240px; background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.86)); }
+.center-btn { position: absolute; left: 598px; top: 318px; width: 84px; height: 84px; border-radius: 50%; background: rgba(0,0,0,.35); color: #fff;
+              display: flex; align-items: center; justify-content: center; }
+.center-btn .icon { font-family: "Symbols Fill"; font-size: 40px; }
+.capsule { position: absolute; left: 50%; transform: translateX(-50%); height: 40px; padding: 0 16px 0 12px; border-radius: 999px;
+           background: rgba(0,0,0,.6); color: #fff; display: flex; align-items: center; gap: 10px; font: 500 14px/20px "Google Sans"; white-space: nowrap; }
