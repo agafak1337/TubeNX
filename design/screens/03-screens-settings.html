@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>TubeNX — 03 Screens / Settings</title>
+<link rel="stylesheet" href="../assets/base.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/app.css">
+<script src="../assets/frame.js"></script>
+<style>
+/* Раскладка: две колонки 560, зазор 24. B (рекомендация) — блок по центру, поля 56; A — прижат влево, поля 24 */
+.appbar { z-index: 3; }
+.appbar.scrolled { background: var(--surface-container); }
+.set { position: absolute; left: 56px; top: 72px; display: flex; gap: 24px; padding: 8px 0 36px; }
+.set.lay-a { left: 24px; }
+.set .col { width: 560px; display: flex; flex-direction: column; gap: 20px; }
+.set .overline { display: block; margin: 0 0 8px 20px; }
+
+/* Строка настройки: текст слева, контрол справа, зона нажатия 48 */
+.srow { display: flex; align-items: center; gap: 16px; min-height: 48px; }
+.srow .main { flex: 1; min-width: 0; }
+.srow .main .muted { margin-top: 2px; }
+.srow.tight { margin-top: -8px; }
+.card .seg { margin-top: 8px; }
+.card .flabel { margin-top: 4px; color: var(--on-surface); }
+.gap8 { margin-top: 8px; } .gap12 { margin-top: 12px; } .gap16 { margin-top: 16px; }
+.seg > div.is-focus { background: color-mix(in srgb, var(--primary) 10%, transparent); }
+.seg > div.is-selected.is-focus { background: color-mix(in srgb, var(--primary) 10%, var(--secondary-container)); }
+.seg.is-disabled > div.is-selected { background: color-mix(in srgb, var(--on-surface) 12%, transparent); color: var(--on-surface); }
+
+/* Статус рядом с кнопкой: роль цвета + иконка (не только цвет) */
+.status { display: inline-flex; align-items: center; gap: 6px; font: 500 14px/20px "Google Sans"; letter-spacing: .1px; }
+.status.ok { color: var(--tertiary); } .status.bad { color: var(--error); }
+.stats { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; color: var(--on-surface-variant); }
+.stats .err { color: var(--error); }
+
+/* Палитра seed: кружок 32 в зоне нажатия 48 */
+.seeds { display: flex; gap: 8px; margin: 4px 0 -8px -8px; }
+.seed { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; flex: none; }
+.seed > i { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; }
+.seed.is-selected > i { outline: 2px solid var(--primary); outline-offset: 3px; }
+.seed.is-focus { outline-offset: 0; background: color-mix(in srgb, var(--primary) 16%, transparent); }
+
+/* Степпер сдвига звука */
+.stepper { display: flex; align-items: center; gap: 8px; }
+.stepper .val { width: 88px; text-align: center; font: 500 22px/28px "Google Sans"; color: var(--on-surface); white-space: nowrap; }
+.stepper .btn { padding: 0 16px; min-width: 64px; height: 40px; }
+.card .btn.text.flush { margin-left: -12px; }
+.card .btn.text .icon { margin-right: 0; }
+.keys { margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--outline-variant); color: var(--on-surface-variant); display: flex; flex-direction: column; gap: 2px; }
+
+/* Диалог по центру */
+.dialog.center { position: absolute; left: 440px; top: 252px; z-index: 6; }
+.scrim { z-index: 5; }
+
+/* Лист вариантов и лист состояний фокуса (служебные фреймы) */
+.mini { position: absolute; width: 602px; height: 339px; overflow: hidden; border-radius: 12px; outline: 1px solid var(--outline-variant); }
+.mini > .frame { transform: scale(.47); transform-origin: 0 0; }
+.vlabel { position: absolute; width: 602px; }
+.vlabel .muted { margin-top: 6px; white-space: pre-line; }
+.tag { display: inline-flex; height: 24px; align-items: center; padding: 0 10px; border-radius: 999px; background: var(--tertiary-container); color: var(--on-tertiary-container); font: 500 12px/16px "Google Sans"; letter-spacing: .3px; margin-left: 8px; vertical-align: 3px; }
+.mm { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, var(--tertiary) 28%, transparent); z-index: 4; }
+.fsheet { position: absolute; inset: 88px 24px 24px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.fcell { border-radius: 20px; background: var(--surface-container-low); padding: 14px 18px; display: flex; flex-direction: column; min-width: 0; }
+.fcell .stage { flex: 1; display: flex; align-items: center; justify-content: center; gap: 12px; zoom: 1.5; }
+.fcell .muted { margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="board">
+  <div>
+    <div class="board-title">03 Screens — Settings</div>
+    <div class="board-sub">ТЗ §4.5. Top app bar 72 (закреплён) · две колонки по 560, зазор 24 · карточка: радиус 20, surfaceContainerLow, паддинг 20 · микрозаголовок секции titleSmall, primary, caps +0.5. Основной макет — вариант B раскладки (блок по центру, поля 56), сравнение с вариантом A — в первом ряду.</div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Settings / Раскладка: варианты A и B (служебный фрейм)</div>
+      <div class="frame dark" id="settings-layout-variants">
+        <div class="abs headline-s" style="left:24px; top:28px">Раскладка двух колонок: 24 + 560 + 24 + 560 = 1168 из 1280</div>
+        <div class="vlabel" style="left:24px; top:92px"><span class="title-m">A · по ТЗ буквально: колонки прижаты влево</span></div>
+        <div class="mini" style="left:24px; top:128px"><div class="frame dark" data-set='{"lay":"a","marks":[[0,24],[1168,112]]}'></div></div>
+        <div class="vlabel body-m" style="left:24px; top:484px"><div class="muted">Поля: слева 24, справа 112 (отмечены цветом).
++ левый край карточек совпадает с кнопкой «назад» и с сеткой Home.
+− экран выглядит недозаполненным, справа пустая полоса 112;
+− в доке левая колонка заходит в зону безопасности ТВ (64) на 40.</div></div>
+        <div class="vlabel" style="left:654px; top:92px"><span class="title-m">B · блок из двух колонок по центру</span><span class="tag">Рекомендация</span></div>
+        <div class="mini" style="left:654px; top:128px"><div class="frame dark" data-set='{"marks":[[0,56],[1224,56]]}'></div></div>
+        <div class="vlabel body-m" style="left:654px; top:484px"><div class="muted">Поля: по 56 с обеих сторон.
++ симметрия, пустое место распределено поровну;
++ до зоны безопасности ТВ (64) не хватает всего 8 с каждой стороны.
+− левый край карточек (56) не совпадает с кнопкой «назад» (20) и заголовком (76).</div></div>
+      </div>
+      <div class="spec">Миниатюры — тот же экран в масштабе 47 %. Размеры колонок и зазор одинаковые (560 / 24 / 560), отличается только положение блока: A — x=24…1168, B — x=56…1224. Все остальные фреймы страницы нарисованы по варианту B.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Settings / Верх страницы / Тёмная</div>
+      <div class="frame dark" id="settings-top" data-set='{}'></div>
+      <div class="spec">App bar 72: назад 44×44, «Настройки» headlineSmall. Колонки x=56 и x=640, по 560; микрозаголовок y=80 (отступ 20 от края карточки), первая карточка y=108; между секциями 20.
+Левая колонка: обход DPI → видео → звук. Правая: оформление → история → о приложении. Строка с контролом ≥ 48 по высоте; switch 52×32; segmented 40 на всю ширину (520).</div>
+    </div>
+    <div class="shot">
+      <div class="name">Settings / Прокручено до конца / Тёмная</div>
+      <div class="frame dark" id="settings-scrolled" data-set='{"scroll":true}'></div>
+      <div class="spec">App bar закреплён; при прокрутке его фон меняется surface → surfaceContainer (без тени), контент уходит под него. Снизу после последней карточки — 36 px (зона безопасности ТВ).</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Settings / Весь контент (служебная доска 1280×824) / Тёмная</div>
+      <div class="frame dark" id="settings-full" data-set='{"full":true}'></div>
+      <div class="spec">Высокая доска: все 6 карточек целиком, высота 824 (служебная — показывает весь скролл-контент, на устройстве кадр 1280×720). Экран скроллится по вертикали, колонки прокручиваются вместе.</div>
+    </div>
+    <div class="shot">
+      <div class="name">Settings / Весь контент (служебная доска 1280×824) / Светлая</div>
+      <div class="frame light" id="settings-full-light" data-set='{"full":true,"dark":false}'></div>
+      <div class="spec">Светлая тема: те же роли. «Тёмная тема» — switch выключен. Служебная доска 1280×824, кадр устройства — 1280×720.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Settings / Фокус геймпада на сегменте / Тёмная</div>
+      <div class="frame dark" id="settings-focus" data-set='{"focus":"seg"}'></div>
+      <div class="spec">Фокус на сегменте «Multi» (не выбран; выбран Split): кольцо 3 px primary внутрь сегмента + подложка primary 10 %. Влево/вправо — соседний сегмент, A — выбрать, вниз — «Проверить доступ».</div>
+    </div>
+    <div class="shot">
+      <div class="name">Settings / Состояния фокуса, увеличено ×1,5 (служебный фрейм)</div>
+      <div class="frame dark" id="settings-focus-states">
+        <div class="abs headline-s" style="left:24px; top:28px">Фокус геймпада на контролах настроек — ×1,5</div>
+        <div class="fsheet">
+          <div class="fcell"><div class="title-s">Switch, включён</div><div class="body-s muted">кольцо 3 px primary, зазор 2</div><div class="stage"><span class="switch is-on is-focus"></span></div></div>
+          <div class="fcell"><div class="title-s">Switch, выключен</div><div class="body-s muted">то же кольцо, форма не меняется</div><div class="stage"><span class="switch is-focus"></span></div></div>
+          <div class="fcell"><div class="title-s">Кнопка tonal</div><div class="body-s muted">кольцо + слой состояния 10 %</div><div class="stage"><span class="btn tonal is-focus"><span class="icon">wifi</span>Проверить доступ</span></div></div>
+          <div class="fcell"><div class="title-s">Кнопка text, error</div><div class="body-s muted">кольцо primary, текст остаётся error</div><div class="stage"><span class="btn text danger is-focus"><span class="icon">delete</span>Очистить историю</span></div></div>
+          <div class="fcell"><div class="title-s">Кружок seed</div><div class="body-s muted">кольцо по зоне 48 + подложка primary 16 %</div><div class="stage"><span class="seed is-selected"><i style="background:var(--seed-red)"><span class="icon s18">check</span></i></span><span class="seed is-focus"><i style="background:var(--seed-blue)"></i></span></div></div>
+          <div class="fcell"><div class="title-s">Сегмент</div><div class="body-s muted">кольцо внутрь + подложка primary 10 %</div><div class="stage"><div class="seg" style="width:220px"><div class="is-selected">Split</div><div class="is-focus">Multi</div><div>TLS</div></div></div></div>
+          <div class="fcell"><div class="title-s">Степпер сдвига звука</div><div class="body-s muted">кнопка tonal 40, зазор 8</div><div class="stage"><div class="stepper"><span class="btn tonal">−50</span><span class="btn tonal is-focus">+50</span></div></div></div>
+          <div class="fcell"><div class="title-s">Назад в app bar</div><div class="body-s muted">44×44, кольцо + слой состояния 10 %</div><div class="stage"><span class="ibtn s44 is-focus"><span class="icon">arrow_back</span></span></div></div>
+          <div class="fcell"><div class="title-s">Правило</div><div class="body-s muted">для всех контролов</div><div class="stage" style="zoom:1"><div class="body-s muted" style="text-align:center; line-height:22px">Кольцо 3 px primary<br>Зазор 2 px · радиус +2 px<br>Подложка primary 10 %</div></div></div>
+        </div>
+      </div>
+      <div class="spec">Единое правило: 3 px primary снаружи с зазором 2 px (радиус = радиус элемента + 2) плюс подложка — слой состояния 10 % или заливка primary. Исключение — сегмент: кольцо рисуется внутрь, так как сегменты стоят вплотную. Сетка 3 × 3 ячейки по 400 × 192, контролы показаны в ×1,5 — при ×2 кнопка «Проверить доступ» и сегмент не помещаются в ячейку и вылезают за фрейм.
+Выбранный seed (кольцо 2 px primary + галочка) и seed в фокусе (кольцо 3 px по зоне 48) различимы одновременно.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Settings / Обход выключен / Тёмная</div>
+      <div class="frame dark" id="settings-disabled" data-set='{"bypass":false}'></div>
+      <div class="spec">Switch «Обход блокировок» выключен → зависимое от него (сегменты режима, статистика, строка SNI) — opacity 38 %. «Проверить доступ» остаётся активной: проверка без обхода и даёт статус «нет соединения» (error + иконка wifi_off). «Прокси отключён» — onSurfaceVariant. Последняя ошибка — error, 1 строка с ellipsis.</div>
+    </div>
+    <div class="shot">
+      <div class="name">Settings / Диалог «Очистить историю?» / Тёмная</div>
+      <div class="frame dark" id="settings-dialog" data-set='{"dialog":true}'></div>
+      <div class="spec">Скрим чёрный 50 % на весь фрейм, включая app bar. Диалог 400, по центру, surfaceContainerHigh, радиус 28, паддинг 24, тень (всплывающая поверхность). Заголовок headlineSmall, текст bodyMedium onSurfaceVariant. Кнопки text: «Отмена» (фокус по умолчанию), «Очистить» — error. B — отмена.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot">
+      <div class="name">Settings / Верх страницы / Светлая</div>
+      <div class="frame light" id="settings-top-light" data-set='{"dark":false}'></div>
+      <div class="spec">Светлая тема, seed красный.</div>
+    </div>
+    <div class="shot">
+      <div class="name">Settings / Верх страницы / Тёмная, seed синий</div>
+      <div class="frame dark seed-blue" id="settings-seed-blue" data-set='{"seed":"blue"}'></div>
+      <div class="spec">Выбран синий seed: вся схема (primary, secondaryContainer, tertiary, поверхности) пересчитана из него. Кружки палитры не перекрашиваются — это фиксированные seed-цвета.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  function sw(on, extra) { return '<span class="switch' + (on ? " is-on" : "") + (extra ? " " + extra : "") + '"></span>'; }
+  function build(o) {
+    var by = o.bypass !== false, dark = o.dark !== false, seed = o.seed || "red", dis = by ? "" : " is-disabled";
+    var seeds = ["red", "blue", "green", "purple", "orange", "pink"].map(function (s) {
+      return '<span class="seed' + (s === seed ? " is-selected" : "") + '"><i style="background:var(--seed-' + s + ')">' +
+        (s === seed ? '<span class="icon s18">check</span>' : "") + "</i></span>";
+    }).join("");
+    var h = '<div class="appbar' + (o.scroll ? " scrolled" : "") + '"><span class="ibtn s44 back"><span class="icon">arrow_back</span></span><span class="headline-s">Настройки</span></div>';
+    h += '<div class="set' + (o.lay === "a" ? " lay-a" : "") + '"><div class="col">';
+
+    h += '<div><span class="overline">Обход DPI • ByeByeDPI</span><div class="card">' +
+      '<div class="srow tight"><div class="main"><div class="title-m">Обход блокировок</div></div>' + sw(by) + "</div>" +
+      '<div class="body-m muted">Фрагментация TLS ClientHello против DPI-троттлинга YouTube</div>' +
+      '<div class="seg gap16' + dis + '"><div class="is-selected">Split</div><div' + (o.focus === "seg" ? ' class="is-focus"' : "") + ">Multi</div><div>Disorder</div><div>TLS</div></div>" +
+      '<div class="srow gap12"><span class="btn tonal"><span class="icon">wifi</span>Проверить доступ</span>' +
+      (by ? '<span class="status ok"><span class="icon s18">check</span>YouTube: 128 мс</span>'
+          : '<span class="status bad"><span class="icon s18">wifi_off</span>нет соединения</span>') + "</div>" +
+      '<div class="stats body-m">' +
+      '<div class="clamp1' + dis + '">' + (by ? "Соединений: 12 • фрагментов: 8 • трафик: 3,4 МБ" : "Соединений: 0 • фрагментов: 0 • трафик: 0 МБ") + "</div>" +
+      '<div class="clamp1">' + (by ? "Прокси: 127.0.0.1:1080" : "Прокси отключён") + "</div>" +
+      '<div class="clamp1' + dis + '">' + (by ? "SNI-обход: вкл • TLS: имя + цепочка" : "SNI-обход: выкл • TLS: имя + цепочка") + "</div>" +
+      (by ? '<div class="clamp1">Ошибок нет</div>'
+          : '<div class="clamp1 err">Последняя ошибка: превышено время ожидания ответа от youtube.com (TLS, 10 с), повтор через 30 с</div>') +
+      "</div></div></div>";
+
+    h += '<div><span class="overline">Видео</span><div class="card">' +
+      '<div class="title-m">Качество по умолчанию</div>' +
+      '<div class="seg"><div class="is-selected">Авто</div><div>720p</div><div>480p</div><div>360p</div></div>' +
+      '<div class="srow gap12" style="margin-bottom:-8px"><div class="main"><div class="title-m">Автовоспроизведение следующего видео</div></div>' + sw(true) + "</div>" +
+      "</div></div>";
+
+    h += '<div><span class="overline">Звук • Синхронизация с видео</span><div class="card">' +
+      '<div class="srow tight"><div class="main"><div class="title-m">Сдвиг звука</div></div>' +
+      '<div class="stepper"><span class="btn tonal">−50</span><span class="val">0 мс</span><span class="btn tonal">+50</span><span class="btn text"><span class="icon">restart_alt</span>Сброс</span></div></div>' +
+      '<div class="body-m muted gap8">Если звук отстаёт от картинки — сдвиньте в плюс</div>' +
+      "</div></div>";
+
+    h += '</div><div class="col">';
+
+    h += '<div><span class="overline">Оформление • Material 3</span><div class="card">' +
+      '<div class="srow tight"><div class="main"><div class="title-m">Тёмная тема</div><div class="body-m muted">M3 tonal palette, автоматически</div></div>' + sw(dark) + "</div>" +
+      '<div class="title-m gap16">Палитра</div><div class="seeds">' + seeds + "</div>" +
+      "</div></div>";
+
+    h += '<div><span class="overline">История и рекомендации</span><div class="card">' +
+      '<div class="srow tight"><div class="main"><div class="title-m">Локальные рекомендации</div><div class="body-m muted">История хранится только на этой консоли</div></div>' + sw(true) + "</div>" +
+      '<div class="gap12" style="margin-bottom:-8px"><span class="btn text danger flush"><span class="icon">delete</span>Очистить историю</span></div>' +
+      "</div></div>";
+
+    h += '<div><span class="overline">О приложении</span><div class="card">' +
+      '<div class="title-m">TubeNX 1.0</div>' +
+      '<div class="body-m muted" style="margin-top:2px">Material 3 Expressive • Google Sans</div>' +
+      '<div class="body-s muted" style="margin-top:4px">Сборка: 2026.11.13 • a1b2c3d • libnx 4.9.0</div>' +
+      '<div class="gap8"><span class="btn text flush">Лицензии open source<span class="icon end" style="margin-right:-4px">chevron_right</span></span></div>' +
+      '<div class="keys body-s"><div>Кнопки: A — выбрать • B — назад</div><div>В плеере: Y — пауза • L/R — ±30 с • ←/→ — ±10 с</div></div>' +
+      "</div></div>";
+
+    h += "</div></div>";
+    if (o.dialog) {
+      h += '<div class="scrim"></div><div class="dialog center"><div class="headline-s">Очистить историю?</div>' +
+        '<div class="body-m muted" style="margin-top:16px">История просмотров и локальные рекомендации будут удалены с этой консоли.</div>' +
+        '<div class="actions"><span class="btn text is-focus">Отмена</span><span class="btn text danger">Очистить</span></div></div>';
+    }
+    (o.marks || []).forEach(function (m) { h += '<div class="mm" style="left:' + m[0] + "px; width:" + m[1] + 'px"></div>'; });
+    return h;
+  }
+  document.querySelectorAll("[data-set]").forEach(function (f) {
+    var o = JSON.parse(f.dataset.set);
+    f.innerHTML = build(o);
+    var set = f.querySelector(".set"), total = 72 + set.offsetHeight;
+    if (o.full) f.style.height = total + "px";
+    if (o.scroll) set.style.top = (72 - (total - 720)) + "px";
+    f.dataset.h = total;
+  });
+})();
+</script>
+</body>
+</html>

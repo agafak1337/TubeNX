@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>TubeNX — 02 Components</title>
+<link rel="stylesheet" href="../assets/base.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/app.css">
+<style>
+/* ---------- Доска компонентов: фрейм = две половины (dark | light) + спека ---------- */
+.frame.cmp { height: auto; display: flex; flex-wrap: wrap; background: #100d0d; color: #a89a99; }
+.half { width: 640px; padding: 24px; background: var(--surface); color: var(--on-surface); display: flex; flex-direction: column; gap: 20px; }
+.half::before { font: 500 12px/16px "Google Sans"; letter-spacing: .3px; color: var(--on-surface-variant); }
+.half.dark::before { content: "Dark"; } .half.light::before { content: "Light"; }
+.half.p16 { padding: 16px; }
+.specbox { width: 1280px; padding: 16px 24px 20px; font: 400 12px/18px "Google Sans"; color: #a89a99; white-space: pre-line; }
+.specbox b { font-weight: 500; color: #ede0df; }
+.cap { font: 500 12px/16px "Google Sans"; letter-spacing: .3px; color: var(--on-surface-variant); }
+.h { font: 500 14px/20px "Google Sans"; letter-spacing: .1px; color: var(--on-surface); }
+.st { display: grid; grid-template-columns: 84px repeat(var(--n, 5), 1fr); align-items: center; justify-items: start; gap: 12px 8px; }
+.st.v { grid-template-columns: 84px 1fr; justify-items: stretch; }
+.st.v > .h, .st.t > .h { grid-column: 1 / -1; margin-top: 8px; }
+.st.t { grid-template-columns: repeat(var(--n, 5), 1fr); gap: 4px 8px; }
+.st .c { display: flex; align-items: center; min-height: 48px; min-width: 0; }
+.st.v .c { width: 100%; }
+.line { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.col { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+
+/* Служебные выноски: размер (.rl) и зона нажатия 48 (.tt) */
+.rl, .tt { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.rl { margin-top: 16px; }
+.rl::after { content: ""; position: absolute; inset: 0; border: 1px solid #ff4fd8; pointer-events: none; z-index: 60; }
+.rl::before, .tt::before { content: attr(data-r); position: absolute; left: 0; top: -16px; font: 500 12px/14px "Google Sans"; color: #ff4fd8; white-space: nowrap; z-index: 61; }
+.tt { min-width: 48px; min-height: 48px; margin-top: 16px; }
+.tt::after { content: ""; position: absolute; inset: 0; border: 1px dashed #ff4fd8; pointer-events: none; z-index: 60; }
+.tt > .rl::before { left: 100%; top: 50%; margin: -7px 0 0 6px; }
+.tt:has(> .rl) { margin-right: 36px; }
+
+/* Подложка-кадр для элементов поверх видео: всегда тёмная схема */
+.vframe { position: relative; border-radius: 12px; padding: 16px; background: linear-gradient(120deg, #1e3a8a, #0f766e); color: #fff; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.vframe.plain { background: #101418; }
+
+/* ---------- Дополнения к общим стилям (см. отчёт) ---------- */
+.chip .icon.end { margin-left: 0; margin-right: -8px; }
+.chip.is-focus { background: color-mix(in srgb, currentColor 10%, transparent); }
+.chip.is-selected.is-focus { background: color-mix(in srgb, var(--on-secondary-container) 10%, var(--secondary-container)); }
+.chip.on-video.is-hover { background: rgba(255,255,255,.22); }
+.chip.on-video.is-pressed, .chip.on-video.is-focus { background: rgba(255,255,255,.26); }
+.chip.on-video.is-selected { background: #fff; color: #101418; }
+
+.seg > div:first-child { border-radius: 999px 0 0 999px; }
+.seg > div:last-child { border-radius: 0 999px 999px 0; }
+.seg > div.is-pressed { background: color-mix(in srgb, var(--on-surface) 10%, transparent); }
+.seg > div.is-selected.is-pressed { background: color-mix(in srgb, var(--on-secondary-container) 10%, var(--secondary-container)); }
+.seg > div.is-focus { background: color-mix(in srgb, var(--primary) 10%, transparent); }
+.seg > div.is-selected.is-focus { background: color-mix(in srgb, var(--on-secondary-container) 10%, var(--secondary-container)); }
+
+.switch.with-icon:not(.is-on)::before { left: 2px; width: 24px; height: 24px; margin-top: -12px; }
+.switch.with-icon:not(.is-on)::after { content: "close"; font-family: "Symbols"; font-feature-settings: "liga"; font-size: 16px; line-height: 16px;
+  position: absolute; left: 6px; top: 6px; color: var(--surface-container-highest); }
+.switch.with-icon.is-pressed:not(.is-on)::before { left: 0; width: 28px; height: 28px; margin-top: -14px; }
+.switch.is-hover::before, .switch.is-focus::before { box-shadow: 0 0 0 8px color-mix(in srgb, var(--on-surface) 8%, transparent); }
+.switch.is-on.is-hover::before, .switch.is-on.is-focus::before { box-shadow: 0 0 0 8px color-mix(in srgb, var(--primary) 12%, transparent); }
+.switch.is-hover:not(.is-on)::before { background: var(--on-surface-variant); }
+
+.slider.is-hover .thumb { box-shadow: 0 0 0 8px color-mix(in srgb, var(--primary) 12%, transparent); }
+.slider.is-pressed .thumb { width: 20px; height: 20px; margin: -10px 0 0 -10px; box-shadow: 0 0 0 8px color-mix(in srgb, var(--primary) 16%, transparent); }
+.slider.is-focus:not(.on-video) .thumb { box-shadow: 0 0 0 2px var(--surface), 0 0 0 5px var(--primary); }
+
+.searchbar.is-hover { background: color-mix(in srgb, var(--on-surface) 8%, var(--surface-container-high)); }
+.searchbar.is-pressed { background: color-mix(in srgb, var(--on-surface) 10%, var(--surface-container-high)); }
+.searchbar.is-focus { background: var(--surface-container-highest); }
+.searchbar .caret { width: 2px; height: 24px; background: var(--primary); margin-left: 2px; display: inline-block; vertical-align: top; }
+.searchbar .ibtn { margin-right: -12px; }
+
+.card.is-hover { background-image: linear-gradient(color-mix(in srgb, var(--on-surface) 8%, transparent) 0 0); }
+.card.is-pressed { background-image: linear-gradient(color-mix(in srgb, var(--on-surface) 10%, transparent) 0 0); }
+.card.is-focus { background-image: linear-gradient(color-mix(in srgb, var(--primary) 10%, transparent) 0 0); }
+
+.li.is-pressed { background: color-mix(in srgb, var(--on-surface) 10%, transparent); }
+.li .trail { font: 400 14px/20px "Google Sans"; color: var(--on-surface-variant); flex: none; }
+.li > .icon.end { flex: none; }
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 12px; }
+.cards .card { padding: 16px; min-height: 96px; }
+.cards .card .body-s { margin-top: 4px; color: var(--on-surface-variant); }
+.listbox { border-radius: 16px; background: var(--surface-container-low); padding: 8px 0; overflow: hidden; }
+
+.stage { position: relative; border-radius: 16px; overflow: hidden; background: var(--surface); border: 1px solid var(--outline-variant); }
+.stage.modal { display: flex; align-items: center; justify-content: center; padding: 28px 0; border: 0; }
+.stage.modal .dialog { position: relative; z-index: 1; }
+.stage.video { background: linear-gradient(120deg, #1e3a8a, #0f766e); }
+.dialog h3 { font: 400 24px/32px "Google Sans"; }
+.dialog p { font: 400 14px/20px "Google Sans"; letter-spacing: .15px; color: var(--on-surface-variant); margin-top: 16px; }
+.dialog > .icon { color: var(--secondary); display: block; margin: 0 auto 16px; }
+.dialog.centered h3 { text-align: center; }
+
+.snackbar .action.is-hover { background: color-mix(in srgb, var(--inverse-primary) 8%, transparent); border-radius: 8px; }
+.snackbar .action.is-pressed { background: color-mix(in srgb, var(--inverse-primary) 10%, transparent); border-radius: 8px; }
+.snackbar .action.is-focus { outline-color: var(--inverse-primary); outline-offset: -5px; border-radius: 12px; }
+
+.linear.indet > i { left: 18%; width: 38%; }
+.linear > i { font-style: normal; }
+.spinner.det { background: conic-gradient(var(--primary) 0 var(--p, 65%), var(--surface-container-highest) 0); }
+
+.appbar.demo { position: relative; }
+.navbar { height: 80px; background: var(--surface-container); display: flex; padding: 0 64px; }
+.navbar .item { flex: 1; display: flex; flex-direction: column; align-items: center; padding-top: 12px; gap: 4px;
+  font: 500 12px/16px "Google Sans"; letter-spacing: .3px; color: var(--on-surface-variant); }
+.navbar .pill { width: 64px; height: 32px; border-radius: 999px; display: flex; align-items: center; justify-content: center; }
+.navbar .item.is-selected { color: var(--on-surface); }
+.navbar .item.is-selected .pill { background: var(--secondary-container); color: var(--on-secondary-container); }
+.navbar .item.is-hover .pill { background: color-mix(in srgb, var(--on-surface) 8%, transparent); }
+.navbar .item.is-pressed .pill { background: color-mix(in srgb, var(--on-surface) 10%, transparent); }
+.navbar .item.is-focus { outline: none; }
+.navbar .item.is-focus .pill { outline: 3px solid var(--primary); outline-offset: 2px; background: color-mix(in srgb, var(--primary) 10%, transparent); }
+.concept-tag { align-self: flex-start; padding: 4px 12px; border-radius: 999px; background: var(--tertiary-container); color: var(--on-tertiary-container); font: 500 12px/16px "Google Sans"; letter-spacing: .3px; }
+
+.empty.demo { position: relative; }
+
+.ccard.is-hover .cover::after { content: ""; position: absolute; inset: 0; background: rgba(255,255,255,.06); }
+.ccard.is-pressed .cover::after { content: ""; position: absolute; inset: 0; background: rgba(255,255,255,.1); }
+.ccard.is-focus::before { content: ""; position: absolute; inset: -6px; border-radius: 18px; background: var(--primary-container); z-index: 0; }
+.ccard.is-focus > * { position: relative; z-index: 1; }
+.ccard.is-focus .title { color: var(--on-primary-container); }
+.th.light-cover { background: linear-gradient(120deg, #f6f1e7, #dbe7f5); }
+.th.dark-cover { background: linear-gradient(120deg, #0d0f14, #1a1d24); }
+.vgrid { display: grid; grid-template-columns: 296px 296px; gap: 12px 16px; }
+.cgrid { display: grid; grid-template-columns: 240px 240px; gap: 12px 24px; }
+.snackbar.st-demo { position: relative; left: 0; bottom: 0; transform: none; }
+.sn-states { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 12px; }
+.pg { display: grid; grid-template-columns: 40px 1fr; align-items: center; gap: 16px 12px; }
+.capsule.demo { position: relative; left: 0; transform: none; }
+.navbar.n4 { padding: 0 8px; }
+.fr-big { width: 168px; height: 64px; border-radius: 16px; flex: none; background: color-mix(in srgb, var(--primary) 10%, transparent); }
+.frow { display: grid; grid-template-columns: 296px 240px; gap: 28px 40px; align-items: start; padding: 8px; }
+.onscrim { background: linear-gradient(rgba(0,0,0,.25), rgba(0,0,0,.86)), linear-gradient(120deg, #f6f1e7, #9fb6cf); }
+.navbar .item.is-selected.is-hover .pill { background: color-mix(in srgb, var(--on-secondary-container) 8%, var(--secondary-container)); }
+.navbar .item.is-selected.is-pressed .pill, .navbar .item.is-selected.is-focus .pill { background: color-mix(in srgb, var(--on-secondary-container) 10%, var(--secondary-container)); }
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var NAMES = { "": "Default", "is-hover": "Hover", "is-focus": "Focus", "is-pressed": "Pressed", "is-disabled": "Disabled" };
+  document.querySelectorAll(".st").forEach(function (st) {
+    var states = (st.dataset.states || "default hover focus pressed disabled").split(" ")
+      .map(function (s) { return s === "default" ? "" : "is-" + s; });
+    var vertical = st.classList.contains("v");
+    var rows = Array.prototype.slice.call(st.querySelectorAll(":scope > .r"));
+    st.style.setProperty("--n", states.length);
+    var out = document.createDocumentFragment();
+    function cap(t) { var d = document.createElement("div"); d.className = "cap"; d.textContent = t; return d; }
+    var top = st.classList.contains("t");
+    if (!vertical) { if (!top) out.appendChild(cap("")); states.forEach(function (s) { out.appendChild(cap(NAMES[s])); }); }
+    rows.forEach(function (r) {
+      if (vertical || top) { var h = document.createElement("div"); h.className = "h"; h.textContent = r.dataset.l || ""; out.appendChild(h); }
+      else out.appendChild(cap(r.dataset.l || ""));
+      states.forEach(function (s) {
+        if (vertical) out.appendChild(cap(NAMES[s]));
+        var c = document.createElement("div"); c.className = "c"; c.innerHTML = r.innerHTML;
+        if (s) {
+          var root = c.firstElementChild;
+          var ts = c.querySelectorAll("[data-t]");
+          if (ts.length) ts.forEach(function (t) { t.classList.add(s); }); else if (root) root.classList.add(s);
+        }
+        out.appendChild(c);
+      });
+    });
+    st.innerHTML = ""; st.appendChild(out);
+  });
+  document.querySelectorAll(".frame.cmp").forEach(function (f) {
+    var spec = f.querySelector(":scope > .specbox");
+    var dark = document.createElement("div"); dark.className = "half dark" + (f.dataset.half ? " " + f.dataset.half : "");
+    Array.prototype.slice.call(f.childNodes).forEach(function (n) { if (n !== spec) dark.appendChild(n); });
+    var light = dark.cloneNode(true); light.className = dark.className.replace("dark", "light");
+    f.insertBefore(light, spec); f.insertBefore(dark, light);
+  });
+});
+</script>
+<script src="../assets/frame.js"></script>
+</head>
+<body>
+<div class="board">
+  <div>
+    <div class="board-title">02 Components</div>
+    <div class="board-sub">Компонентная библиотека TubeNX. Каждый фрейм: слева тёмная тема, справа светлая, снизу спека. Розовым — служебные выноски: сплошная рамка — размер, пунктир — зона нажатия 48. Состояния: Default / Hover / Focus / Pressed / Disabled (38 % opacity).</div>
+  </div>
+
+  <div class="row"><div class="shot">
+    <div class="name">Button</div>
+    <div class="frame cmp" id="cmp-button">
+      <div class="st t">
+        <div class="r" data-l="Filled"><span class="btn filled">Далее</span></div>
+        <div class="r" data-l="Filled tonal"><span class="btn tonal">Далее</span></div>
+        <div class="r" data-l="Outlined"><span class="btn outlined">Далее</span></div>
+        <div class="r" data-l="Text"><span class="btn text">Далее</span></div>
+        <div class="r" data-l="Elevated"><span class="btn elevated">Далее</span></div>
+        <div class="r" data-l="Filled · иконка слева"><span class="btn filled"><span class="icon">refresh</span>Далее</span></div>
+        <div class="r" data-l="Filled tonal · иконка справа"><span class="btn tonal">Далее<span class="icon end">arrow_forward</span></span></div>
+      </div>
+      <div class="h">Иконка слева / справа</div>
+      <div class="line">
+        <span class="btn tonal"><span class="icon">wifi</span>Проверить доступ</span>
+        <span class="btn outlined">Настройки<span class="icon end">chevron_right</span></span>
+        <span class="btn text danger"><span class="icon">delete</span>Очистить историю</span>
+      </div>
+      <div class="h">Размеры S 32 / M 40 / L 48 и зона нажатия 48</div>
+      <div class="line" style="gap:28px; align-items:flex-end">
+        <span class="tt" data-r="touch 48"><span class="rl" data-r="S 32" style="margin:0"><span class="btn filled s">Сброс</span></span></span>
+        <span class="tt" data-r="touch 48"><span class="rl" data-r="M 40" style="margin:0"><span class="btn filled">Обновить</span></span></span>
+        <span class="rl" data-r="L 48"><span class="btn filled l"><span class="icon fill">play_arrow</span>Смотреть снова</span></span>
+      </div>
+      <div class="specbox"><b>Button</b> · высота S 32 / M 40 / L 48 · радиус full (999); Pressed — радиус 12 (Expressive) · паддинг по горизонтали S 16, M 24, L 28; text 12; со стороны иконки на 8 меньше · иконка 18 (L — 20), зазор до текста 8
+Типографика: labelLarge 14/20 Medium (L — 16/20 Medium)
+Роли: filled — primary / onPrimary · tonal — secondaryContainer / onSecondaryContainer · outlined — обводка 1 px outline, текст primary · text — primary (опасное действие — error) · elevated — surfaceContainerLow / primary + тень уровня 1 (только для всплывающих поверхностей)
+Состояния: state layer цветом текста — Hover 8 %, Focus 10 %, Pressed 10 % · Focus — кольцо 3 px primary, отступ 2 · Disabled — opacity 38 % · зона нажатия S и M расширяется до 48 по вертикали</div>
+    </div>
+  </div></div>
+
+  <div class="row"><div class="shot">
+    <div class="name">Icon button</div>
+    <div class="frame cmp" id="cmp-icon-button">
+      <div class="st">
+        <div class="r" data-l="Standard"><span class="ibtn"><span class="icon">settings</span></span></div>
+        <div class="r" data-l="Filled tonal"><span class="ibtn tonal"><span class="icon">search</span></span></div>
+        <div class="r" data-l="Filled"><span class="ibtn filled"><span class="icon fill">play_arrow</span></span></div>
+        <div class="r" data-l="Standard selected"><span class="ibtn is-selected"><span class="icon fill">thumb_up</span></span></div>
+      </div>
+      <div class="h">Размеры 40 / 44 / 48</div>
+      <div class="line" style="gap:28px; align-items:flex-end">
+        <span class="tt" data-r="touch 48"><span class="rl" data-r="40" style="margin:0"><span class="ibtn tonal s40"><span class="icon">close</span></span></span></span>
+        <span class="tt" data-r="touch 48"><span class="rl" data-r="44" style="margin:0"><span class="ibtn tonal s44"><span class="icon">search</span></span></span></span>
+        <span class="rl" data-r="48"><span class="ibtn tonal"><span class="icon">arrow_back</span></span></span>
+        <span class="rl" data-r="48"><span class="ibtn"><span class="icon">more_vert</span></span></span>
+        <span class="rl" data-r="48"><span class="ibtn filled"><span class="icon">add</span></span></span>
+      </div>
+      <div class="specbox"><b>Icon button</b> · контейнер 40 / 44 / 48, круг (радиус full) · иконка 24 по центру · зона нажатия всегда 48×48, между соседними ≥ 8
+Роли: standard — без контейнера, иконка onSurfaceVariant; selected — primary, иконка залитая · filled tonal — secondaryContainer / onSecondaryContainer · filled — primary / onPrimary
+Состояния: state layer цветом иконки — Hover 8 %, Focus 10 %, Pressed 10 % · Focus — кольцо 3 px primary, отступ 2 (радиус full) · Disabled — opacity 38 %
+<b>FAB</b> — не используется: нет основного действия.</div>
+    </div>
+  </div></div>
+
+  <div class="row"><div class="shot">
+    <div class="name">Chip</div>
+    <div class="frame cmp" id="cmp-chip">
+      <div class="st t">
+        <div class="r" data-l="Assist"><span class="chip"><span class="icon">wifi</span>Доступ</span></div>
+        <div class="r" data-l="Filter"><span class="chip">Музыка</span></div>
+        <div class="r" data-l="Filter selected"><span class="chip is-selected">Музыка</span></div>
+        <div class="r" data-l="Input"><span class="chip">рамэн<span class="icon end">close</span></span></div>
+        <div class="r" data-l="Input selected"><span class="chip is-selected">рамэн<span class="icon end">close</span></span></div>
+      </div>
+      <div class="h">Чип поверх видео (всегда белый на кадре, от темы не зависит)</div>
+      <div class="vframe dark">
+        <div class="col"><span class="chip on-video">720p</span><span class="label-m">Default</span></div>
+        <div class="col"><span class="chip on-video is-hover">720p</span><span class="label-m">Hover</span></div>
+        <div class="col"><span class="chip on-video is-focus">720p</span><span class="label-m">Focus</span></div>
+        <div class="col"><span class="chip on-video is-pressed">720p</span><span class="label-m">Pressed</span></div>
+        <div class="col"><span class="chip on-video is-disabled">720p</span><span class="label-m">Disabled</span></div>
+        <div class="col"><span class="chip on-video"><span class="icon">shield</span>SNI-обход</span><span class="label-m">С иконкой</span></div>
+      </div>
+      <div class="h">Размер и зона нажатия</div>
+      <div class="line" style="gap:28px; align-items:flex-end">
+        <span class="tt" data-r="touch 48"><span class="rl" data-r="32" style="margin:0"><span class="chip is-selected">Главная</span></span></span>
+        <span class="tt" data-r="touch 48"><span class="rl" data-r="32" style="margin:0"><span class="chip">В тренде</span></span></span>
+        <span class="vframe plain dark" style="padding:22px 44px 6px 16px"><span class="tt" data-r="touch 48" style="margin:0"><span class="rl" data-r="36" style="margin:0"><span class="chip on-video">Обход DPI: прокси</span></span></span></span>
+      </div>
+      <div class="specbox"><b>Chip</b> · высота 32, радиус full · паддинг 16 / 8; со стороны иконки 8 · иконка 18, зазор 8 · в ряду: высота ряда 48 (зона нажатия), зазор между чипами 8
+Типографика: labelLarge 14/20 Medium
+Роли: unselected — обводка 1 px outlineVariant, фон прозрачный, текст onSurfaceVariant · selected — secondaryContainer / onSecondaryContainer, без обводки и без галочки · input — то же + иконка close 18 справа (удаление)
+Состояния: Hover 8 %, Focus 10 %, Pressed 10 % цветом текста · Focus — кольцо 3 px primary, отступ 2 · Disabled — opacity 38 %
+<b>Chip on video</b> · высота 36, радиус full, паддинг 16 · фон белый 14 % (Hover 22 %, Focus / Pressed 26 %), текст белый · Focus — кольцо 3 px primary тёмной схемы</div>
+    </div>
+  </div></div>
+
+  <div class="row"><div class="shot">
+    <div class="name">Segmented button</div>
+    <div class="frame cmp" id="cmp-segmented">
+      <div class="h">2 сегмента</div>
+      <div class="seg"><div class="is-selected">Тёмная</div><div>Светлая</div></div>
+      <div class="seg"><div class="is-selected"><span class="icon">dark_mode</span>Тёмная</div><div><span class="icon">light_mode</span>Светлая</div></div>
+      <div class="h">3 сегмента</div>
+      <div class="seg"><div>−50</div><div class="is-selected">0 мс</div><div>+50</div></div>
+      <div class="seg"><div><span class="icon">hd</span>720p</div><div class="is-selected"><span class="icon">check</span>480p</div><div><span class="icon">speed</span>360p</div></div>
+      <div class="h">4 сегмента</div>
+      <div class="rl" data-r="высота 40 · ширина 100 % · радиус full" style="display:flex"><div class="seg"><div class="is-selected">Split</div><div>Multi</div><div>Disorder</div><div>TLS</div></div></div>
+      <div class="seg"><div><span class="icon">bolt</span>Авто</div><div class="is-selected"><span class="icon">check</span>720p</div><div>480p</div><div>360p</div></div>
+      <div class="h">Состояния сегмента: unselected</div>
+      <div class="col" style="align-items:stretch; gap:4px">
+        <div class="seg"><div>Default</div><div class="is-hover">Hover</div><div class="is-focus">Focus</div><div class="is-pressed">Pressed</div></div>
+      </div>
+      <div class="h">Состояния сегмента: selected</div>
+      <div class="seg"><div class="is-selected">Default</div><div class="is-selected is-hover">Hover</div><div class="is-selected is-focus">Focus</div><div class="is-selected is-pressed">Pressed</div></div>
+      <div class="h">Disabled</div>
+      <div class="seg is-disabled"><div class="is-selected">Split</div><div>Multi</div><div>Disorder</div><div>TLS</div></div>
+      <div class="specbox"><b>Segmented button</b> · 2–4 сегмента равной ширины, контейнер на всю ширину · высота 40, радиус full · обводка и разделители 1 px outline · иконка 18, зазор 8 · зона нажатия по вертикали 48 (по 4 сверху и снизу)
+Типографика: labelLarge 14/20 Medium
+Роли: unselected — фон прозрачный, текст onSurface · selected — secondaryContainer / onSecondaryContainer (галочка необязательна)
+Состояния: Hover 8 %, Pressed 10 % (onSurface либо onSecondaryContainer) · Focus — кольцо 3 px primary внутрь сегмента (сегмент обрезан контейнером, наружное кольцо невозможно) + заливка primary 10 % · Disabled — весь контрол opacity 38 %</div>
+    </div>
+  </div></div>
+
+  <div class="row"><div class="shot">
+    <div class="name">Switch</div>
+    <div class="frame cmp" id="cmp-switch">
+      <div class="st">
+        <div class="r" data-l="Off"><span class="switch"></span></div>
+        <div class="r" data-l="On"><span class="switch is-on"></span></div>
+        <div class="r" data-l="Off · иконка"><span class="switch with-icon"></span></div>
+        <div class="r" data-l="On · иконка"><span class="switch is-on with-icon"></span></div>
+      </div>
+      <div class="h">Размеры и зона нажатия</div>
+      <div class="line" style="gap:56px; align-items:flex-end">
+        <span class="tt" data-r="touch 52×48"><span class="rl" data-r="52×32" style="margin:0"><span class="switch is-on"></span></span></span>
+        <span class="tt" data-r="touch 52×48"><span class="rl" data-r="52×32" style="margin:0"><span class="switch"></span></span></span>
+        <span class="body-s muted" style="max-width:260px">Thumb: 16 (off) → 24 (on или с иконкой) → 28 (pressed). Иконка 16: check / close.</span>
+      </div>
+      <div class="specbox"><b>Switch</b> · дорожка 52×32, радиус full, обводка 2 px · thumb 24 (off без иконки — 16, pressed — 28) · иконка внутри 16 · зона нажатия 52×48
+Роли off: дорожка surfaceContainerHighest, обводка outline, thumb outline (Hover — onSurfaceVariant), иконка surfaceContainerHighest
+Роли on: дорожка primary, thumb onPrimary, иконка primary
+Состояния: Hover / Focus — ореол вокруг thumb 40 px (onSurface 8 % либо primary 12 %) · Focus — кольцо 3 px primary вокруг дорожки, отступ 2 · Pressed — thumb 28 · Disabled — opacity 38 %</div>
+    </div>
+  </div></div>
+
+  <div class="row"><div class="shot">
+    <div class="name">Slider</div>
+    <div class="frame cmp" id="cmp-slider">
+      <div class="st v" style="--w:1">
+        <div class="r" data-l="Continuous"><div class="slider"><div class="track"></div><div class="fill" style="width:40%"></div><div class="thumb" style="left:40%"></div></div></div>
+      </div>
+      <div class="h">С value label (виден при перетаскивании и в фокусе)</div>
+      <div class="line" style="padding-top:28px">
+        <div class="slider is-pressed"><div class="track"></div><div class="fill" style="width:62%"></div><div class="thumb" style="left:62%"></div><div class="value" style="left:62%">62 %</div></div>
+      </div>
+      <div class="h">На видео: буфер + прогресс</div>
+      <div class="vframe dark" style="display:grid; grid-template-columns:72px 1fr; gap:0 12px; padding:8px 16px">
+        <span class="label-m">Default</span><div class="slider on-video"><div class="track"></div><div class="buffer" style="width:58%"></div><div class="fill" style="width:34%"></div><div class="thumb" style="left:34%"></div></div>
+        <span class="label-m">Hover</span><div class="slider on-video is-hover"><div class="track"></div><div class="buffer" style="width:58%"></div><div class="fill" style="width:34%"></div><div class="thumb" style="left:34%"></div></div>
+        <span class="label-m">Focus</span><div class="slider on-video is-focus"><div class="track"></div><div class="buffer" style="width:58%"></div><div class="fill" style="width:34%"></div><div class="thumb" style="left:34%"></div></div>
+        <span class="label-m">Pressed</span><div class="slider on-video is-pressed" style="margin-top:20px"><div class="track"></div><div class="buffer" style="width:58%"></div><div class="fill" style="width:34%"></div><div class="thumb" style="left:34%"></div><div class="value" style="left:34%">12:48</div></div>
+        <span class="label-m">Disabled</span><div class="slider on-video is-disabled"><div class="track"></div><div class="buffer" style="width:58%"></div><div class="fill" style="width:34%"></div><div class="thumb" style="left:34%"></div></div>
+      </div>
+      <div class="h">Размеры</div>
+      <div class="rl" data-r="зона нажатия: высота 44 · линия 4 · thumb 14" style="display:flex"><div class="slider"><div class="track"></div><div class="fill" style="width:25%"></div><div class="thumb" style="left:25%"></div></div></div>
+      <div class="specbox"><b>Slider</b> · continuous · зона нажатия по высоте 44 · линия 4, радиус full · thumb 14 (Focus / Pressed — 20, линия в фокусе 6) · value label: капсула, паддинг 10 / 4, на 8 выше thumb
+Типографика value label: labelMedium 12/16 Medium
+Роли: дорожка surfaceContainerHighest · заполнение и thumb primary · value label inverseSurface / inverseOnSurface
+На видео: дорожка белый 18 %, буфер белый 30 %, прогресс и thumb primary (тёмная схема) · в фокусе thumb 20 с белым кольцом 3 px — читается на любом кадре
+Состояния: Hover — ореол primary 12 % · Focus — линия 6, thumb 20 + кольцо 3 px · Pressed — thumb 20 + value label · Disabled — opacity 38 %</div>
+    </div>
+  </div></div>
+
+  <div class="row"><div class="shot">
+    <div class="name">Search bar</div>
+    <div class="frame cmp" id="cmp-search-bar">
+      <div class="h">Пусто</div>
+      <div class="rl" data-r="высота 52 · радиус 26 · паддинг 16 · зазор 12" style="display:flex"><div class="searchbar"><span class="icon">search</span><span class="placeholder">Поиск на YouTube</span></div></div>
+      <div class="h">С текстом и кнопкой close</div>
+      <div class="line"><div class="searchbar"><span class="icon">search</span><span class="text">рамэн рецепт из Осаки</span><span class="ibtn s40"><span class="icon">close</span></span></div></div>
+      <div class="h">Focus (поле активно, курсор)</div>
+      <div class="line" style="padding:4px 5px"><div class="searchbar is-focus"><span class="icon">search</span><span class="text">рамэн<span class="caret"></span></span><span class="ibtn s40"><span class="icon">close</span></span></div></div>
+      <div class="h">Остальные состояния</div>
+      <div class="cap" style="margin-bottom:-12px">Hover</div>
+      <div class="line"><div class="searchbar is-hover"><span class="icon">search</span><span class="placeholder">Поиск на YouTube</span></div></div>
+      <div class="cap" style="margin-bottom:-12px">Pressed</div>
+      <div class="line"><div class="searchbar is-pressed"><span class="icon">search</span><span class="placeholder">Поиск на YouTube</span></div></div>
+      <div class="cap" style="margin-bottom:-12px">Disabled</div>
+      <div class="line"><div class="searchbar is-disabled"><span class="icon">search</span><span class="placeholder">Поиск на YouTube</span></div></div>
+      <div class="h">В строке с кнопкой назад 44</div>
+      <div class="line" style="gap:8px; flex-wrap:nowrap"><span class="ibtn s44"><span class="icon">arrow_back</span></span><div class="searchbar"><span class="icon">search</span><span class="placeholder">Поиск на YouTube</span></div></div>
+      <div class="specbox"><b>Search bar</b> · высота 52, радиус full (26) · паддинг 16 слева, 4 справа при кнопке close · иконка search 24, зазор 12 · кнопка close: icon button 40 (зона нажатия 48) · слева от поля кнопка назад 44, зазор 8
+Типографика: bodyLarge 16/24 Regular
+Роли: контейнер surfaceContainerHigh · иконки и placeholder onSurfaceVariant · введённый текст onSurface · курсор primary 2×24
+Состояния: Hover — onSurface 8 % · Pressed — onSurface 10 % · Focus — контейнер surfaceContainerHighest + кольцо 3 px primary, отступ 2 (радиус 28) · Disabled — opacity 38 %</div>
+    </div>
+  </div></div>
+
+  <div class="row"><div class="shot">
+    <div class="name">Card</div>
+    <div class="frame cmp" id="cmp-card">
+      <div class="h">Filled</div>
+      <div class="cards"><div class="card  "><div class="title-m">Default</div><div class="body-s">Заголовок titleMedium, текст bodySmall</div></div><div class="card  is-hover"><div class="title-m">Hover</div><div class="body-s">Заголовок titleMedium, текст bodySmall</div></div><div class="card  is-focus"><div class="title-m">Focus</div><div class="body-s">Заголовок titleMedium, текст bodySmall</div></div><div class="card  is-pressed"><div class="title-m">Pressed</div><div class="body-s">Заголовок titleMedium, текст bodySmall</div></div><div class="card  is-disabled"><div class="title-m">Disabled</div><div class="body-s">Заголовок titleMedium, текст bodySmall</div></div></div>
+      <div class="h">Outlined</div>
+      <div class="cards"><div class="card outlined "><div class="title-m">Default</div><div class="body-s">Заголовок titleMedium, текст bodySmall</div></div><div class="card outlined is-hover"><div class="title-m">Hover</div><div class="body-s">Заголовок titleMedium, текст bodySmall</div></div><div class="card outlined is-focus"><div class="title-m">Focus</div><div class="body-s">Заголовок titleMedium, текст bodySmall</div></div><div class="card outlined is-pressed"><div class="title-m">Pressed</div><div class="body-s">Заголовок titleMedium, текст bodySmall</div></div><div class="card outlined is-disabled"><div class="title-m">Disabled</div><div class="body-s">Заголовок titleMedium, текст bodySmall</div></div></div>
+      <div class="h">Elevated (только всплывающие поверхности)</div>
+      <div class="cards"><div class="card elevated "><div class="title-m">Default</div><div class="body-s">Заголовок titleMedium, текст bodySmall</div></div><div class="card elevated is-hover"><div class="title-m">Hover</div><div class="body-s">Заголовок titleMedium, текст bodySmall</div></div><div class="card elevated is-focus"><div class="title-m">Focus</div><div class="body-s">Заголовок titleMedium, текст bodySmall</div></div><div class="card elevated is-pressed"><div class="title-m">Pressed</div><div class="body-s">Заголовок titleMedium, текст bodySmall</div></div><div class="card elevated is-disabled"><div class="title-m">Disabled</div><div class="body-s">Заголовок titleMedium, текст bodySmall</div></div></div>
+      <div class="h">Размеры (карточка настроек)</div>
+      <div class="rl" data-r="радиус 20 · паддинг 20" style="display:block"><div class="card"><div class="overline">Видео</div><div class="title-m" style="margin-top:8px">Автовоспроизведение</div><div class="body-m muted">Следующее видео запускается само</div></div></div>
+      <div class="specbox"><b>Card</b> · радиус 20, паддинг 20 (в сетке примеров — 16) · крупные контейнеры — радиус 24–28
+Типографика: надзаголовок titleSmall 14/20 Medium, +0.5, прописные · заголовок titleMedium 16/24 Medium · текст bodyMedium 14/20 или bodySmall 12/16
+Роли: filled — surfaceContainerLow / onSurface, вторичный текст onSurfaceVariant · outlined — фон прозрачный, обводка 1 px outlineVariant · elevated — surfaceContainerLow + тень уровня 2; в списках и сетках не использовать (ограничение рендерера)
+Состояния (только если карточка кликабельна): Hover — onSurface 8 % · Pressed — onSurface 10 % · Focus — заливка primary 10 % + кольцо 3 px primary, отступ 2 (радиус 22) · Disabled — opacity 38 %</div>
+    </div>
+  </div></div>
+
+  <div class="row"><div class="shot">
+    <div class="name">List item</div>
+    <div class="frame cmp" id="cmp-list-item">
+      <div class="h">1 строка · 48</div>
+      <div class="listbox">
+        <div class="li body-l"><span class="icon">history</span><div class="main clamp1">рамэн рецепт из Осаки</div><span class="icon end muted">north_west</span></div>
+        <div class="li body-l"><div class="main clamp1">Без иконки, trailing — текст</div><span class="trail">720p</span></div>
+        <div class="li body-l"><span class="icon">palette</span><div class="main clamp1">Тёмная тема</div><span class="switch is-on"></span></div>
+      </div>
+      <div class="h">2 строки · 64</div>
+      <div class="listbox">
+        <div class="li two"><span class="icon">history</span><div class="main"><div class="body-l clamp1">Готовим рамэн дома — рецепт из Осаки</div><div class="sub clamp1">Cook Easy</div></div><span class="icon end muted">chevron_right</span></div>
+        <div class="divider" style="margin:0 16px"></div>
+        <div class="li two"><span class="icon">shield</span><div class="main"><div class="body-l clamp1">Обход блокировок</div><div class="sub clamp1">Фрагментация TLS ClientHello</div></div><span class="switch"></span></div>
+        <div class="divider" style="margin:0 16px"></div>
+        <div class="li two"><span class="icon">high_quality</span><div class="main"><div class="body-l clamp1">Качество по умолчанию</div><div class="sub clamp1">Применяется к новым видео</div></div><span class="trail">Авто</span></div>
+      </div>
+      <div class="h">3 строки · 84</div>
+      <div class="listbox">
+        <div class="li three"><span class="icon">info</span><div class="main"><div class="body-l clamp1">Локальные рекомендации</div><div class="sub clamp2">История хранится только на этой консоли. Рекомендации строятся по просмотренным видео и локальным отметкам «нравится».</div></div><span class="switch is-on"></span></div>
+      </div>
+      <div class="h">Состояния</div>
+      <div class="listbox">
+        <div class="li two"><span class="icon">history</span><div class="main"><div class="body-l">Default</div><div class="sub">Вторая строка</div></div><span class="icon end muted">chevron_right</span></div>
+        <div class="li two is-hover"><span class="icon">history</span><div class="main"><div class="body-l">Hover</div><div class="sub">Вторая строка</div></div><span class="icon end muted">chevron_right</span></div>
+        <div class="li two is-focus"><span class="icon">history</span><div class="main"><div class="body-l">Focus</div><div class="sub">Вторая строка</div></div><span class="icon end muted">chevron_right</span></div>
+        <div class="li two is-pressed"><span class="icon">history</span><div class="main"><div class="body-l">Pressed</div><div class="sub">Вторая строка</div></div><span class="icon end muted">chevron_right</span></div>
+        <div class="li two is-selected"><span class="icon">check</span><div class="main"><div class="body-l">Selected</div><div class="sub">Вторая строка</div></div><span class="trail">720p</span></div>
+        <div class="li two is-disabled"><span class="icon">history</span><div class="main"><div class="body-l">Disabled</div><div class="sub">Вторая строка</div></div><span class="icon end muted">chevron_right</span></div>
+      </div>
+      <div class="specbox"><b>List item</b> · высота 48 (1 строка) / 64 (2 строки) / 84 (3 строки, выравнивание по верху, паддинг сверху 12) · паддинг по горизонтали 16 · зазор между слотами 16 · leading icon 24 · trailing slot: switch 52×32, chevron 24 или текст · разделитель 1 px outlineVariant с отступами 16
+Типографика: заголовок bodyLarge 16/24 Regular · вторая и третья строки bodySmall 12/16 Regular · trailing-текст bodyMedium 14/20
+Роли: заголовок onSurface · иконки, подстрочник и trailing-текст onSurfaceVariant · selected — secondaryContainer / onSecondaryContainer
+Состояния: Hover — onSurface 8 % · Pressed — onSurface 10 % · Focus — заливка primary 10 % + кольцо 3 px primary внутрь строки (строка обрезается контейнером) · Disabled — opacity 38 %</div>
+    </div>
+  </div></div>
+
+  <div class="row"><div class="shot">
+    <div class="name">Dialog</div>
+    <div class="frame cmp" id="cmp-dialog">
+      <div class="h">Basic</div>
+      <div class="stage modal"><div class="scrim"></div>
+        <div class="dialog"><h3>Сменить качество?</h3><p>Видео продолжится с того же места в качестве 480p.</p>
+          <div class="actions"><span class="btn text">Отмена</span><span class="btn text">Сменить</span></div></div></div>
+      <div class="h">Подтверждение удаления истории</div>
+      <div class="stage modal"><div class="scrim"></div>
+        <div class="dialog centered"><span class="icon">delete</span><h3>Очистить историю?</h3><p>История просмотров и локальные рекомендации будут удалены с этой консоли.</p>
+          <div class="actions"><span class="btn text">Отмена</span><span class="btn text danger is-focus">Очистить</span></div></div></div>
+      <div class="h">«Закрыть видео?» — поверх плеера, кнопка B во время воспроизведения</div>
+      <div class="stage modal video"><div class="scrim"></div>
+        <div class="dialog dark"><h3>Закрыть видео?</h3><p>Воспроизведение остановится. Место просмотра сохранится в «Продолжить просмотр».</p>
+          <div class="actions"><span class="btn text is-focus">Отмена</span><span class="btn text">Закрыть</span></div></div></div>
+      <div class="specbox"><b>Dialog</b> · ширина 400, по центру экрана · радиус 28 (extraLarge) · паддинг 24 · иконка 24 по центру (необязательна), до заголовка 16 · заголовок → текст 16 · текст → кнопки 24 · кнопки text M 40, справа, зазор 8 · скрим чёрный 50 % · тень уровня 3
+Типографика: заголовок headlineSmall 24/32 Regular · текст bodyMedium 14/20 · кнопки labelLarge 14/20 Medium
+Роли: контейнер surfaceContainerHigh · заголовок onSurface · текст onSurfaceVariant · иконка secondary · кнопки primary; разрушающее действие — error
+Фокус по умолчанию: в диалогах подтверждения (закрытие видео) — на безопасном действии «Отмена»; B = «Отмена». На примере удаления показан фокус на «Очистить» — кольцо 3 px primary поверх кнопки error.
+Поверх плеера диалог всегда в тёмной схеме.</div>
+    </div>
+  </div></div>
+
+  <div class="row"><div class="shot">
+    <div class="name">Snackbar / toast</div>
+    <div class="frame cmp" id="cmp-snackbar">
+      <div class="h">1 строка + действие · низ экрана по центру</div>
+      <div class="stage" style="height:168px">
+        <div class="appbar demo" style="height:56px; padding:0 16px"><span class="mark"><span class="icon">play_arrow</span></span><span class="title-m">TubeNX</span></div>
+        <div class="snackbar">История очищена<span class="action">Отменить</span></div>
+        <div class="redline" style="left:0; right:0; bottom:0; height:24px; border-width:1px 0 0"><span style="left:8px; top:4px">отступ снизу 24</span></div>
+      </div>
+      <div class="h">Без действия</div>
+      <div class="stage" style="height:96px"><div class="snackbar" style="padding:0 16px">Нет сети. Проверьте обход DPI</div></div>
+      <div class="h">Состояния действия</div>
+      <div class="sn-states">
+        <div class="col"><span class="cap">Default</span><div class="snackbar st-demo">История очищена<span class="action">Отменить</span></div></div>
+        <div class="col"><span class="cap">Hover</span><div class="snackbar st-demo">История очищена<span class="action is-hover">Отменить</span></div></div>
+        <div class="col"><span class="cap">Focus</span><div class="snackbar st-demo">История очищена<span class="action is-focus">Отменить</span></div></div>
+        <div class="col"><span class="cap">Pressed</span><div class="snackbar st-demo">История очищена<span class="action is-pressed">Отменить</span></div></div>
+      </div>
+      <div class="h">Размеры</div>
+      <div class="rl" data-r="высота 48 · радиус 12 · паддинг 16 слева, 8 справа" style="align-self:flex-start"><div class="snackbar st-demo">Не удалось обновить ленту<span class="action">Повторить</span></div></div>
+      <div class="specbox"><b>Snackbar / toast</b> · низ экрана по центру, отступ снизу 24 (на ТВ — 36, вне безопасной зоны не размещать) · высота 48, радиус 12 · паддинг 16 слева, 8 справа (без действия — 16 / 16) · зазор текст → действие 12 · действие: зона 48 по высоте, паддинг 12 · 1 строка, ширина по содержимому, не шире 560 · тень уровня 2 (всплывающая поверхность)
+Типографика: текст bodyMedium 14/20 Regular · действие labelLarge 14/20 Medium
+Роли: контейнер inverseSurface · текст inverseOnSurface · действие inversePrimary
+Поведение: появление fade + сдвиг 8 px, 180 мс · автоскрытие через 3 с · одновременно один snackbar · с геймпада действие получает фокус сразу — кольцо 3 px inversePrimary внутри зоны действия
+Состояния действия: Hover — inversePrimary 8 % · Pressed — 10 % · Focus — кольцо 3 px · Disabled у snackbar нет</div>
+    </div>
+  </div></div>
+
+  <div class="row"><div class="shot">
+    <div class="name">Progress</div>
+    <div class="frame cmp" id="cmp-progress">
+      <div class="h">Linear · определённый</div>
+      <div class="pg"><span class="cap">2 px</span><div class="linear"><i style="width:42%"></i></div>
+        <span class="cap">4 px</span><div class="linear h4"><i style="width:42%"></i></div></div>
+      <div class="h">Linear · неопределённый (сегмент 38 % ширины бежит слева направо)</div>
+      <div class="pg"><span class="cap">2 px</span><div class="linear indet"><i></i></div>
+        <span class="cap">4 px</span><div class="linear h4 indet"><i></i></div></div>
+      <div class="h">Circular · неопределённый</div>
+      <div class="line" style="gap:40px; align-items:flex-end">
+        <span class="rl" data-r="20"><span class="spinner s20"></span></span>
+        <span class="rl" data-r="22"><span class="spinner"></span></span>
+        <span class="rl" data-r="32"><span class="spinner s32"></span></span>
+      </div>
+      <div class="h">Circular · определённый (65 %)</div>
+      <div class="line" style="gap:40px; align-items:flex-end">
+        <span class="rl" data-r="20"><span class="spinner s20 det"></span></span>
+        <span class="rl" data-r="22"><span class="spinner det"></span></span>
+        <span class="rl" data-r="32"><span class="spinner s32 det"></span></span>
+      </div>
+      <div class="h">На видео</div>
+      <div class="vframe dark" style="gap:24px">
+        <span class="spinner on-video"></span>
+        <span class="capsule demo"><span class="spinner s20 on-video"></span>Буферизация…</span>
+        <div style="flex:1; min-width:160px; height:3px; background:rgba(255,255,255,.18)"><div style="width:34%; height:100%; background:var(--primary)"></div></div>
+      </div>
+      <div class="specbox"><b>Progress · linear</b> · высота 2 (сплэш, под app bar) или 4 (внутри карточек) · радиус full · неопределённый: сегмент 38 % ширины, проход слева направо за 1,5 с, кривая emphasized
+<b>Progress · circular</b> · диаметр 20 (в капсуле и в кнопке) / 22 (загрузка плеера) / 32 (загрузка экрана) · толщина 3 · неопределённый: дуга 72 % окружности, оборот за 1,2 с, линейно · определённый: дуга от 12 часов по часовой, остаток — дорожка
+Роли: индикатор primary · дорожка surfaceContainerHighest (у неопределённого circular дорожки нет)
+На видео: индикатор белый, дорожка белый 18 %; полоса свёрнутых контролов — 3 px, белый 18 % + прогресс primary тёмной схемы
+Прогресс — единственная постоянная анимация в интерфейсе. Состояний Hover / Focus / Pressed / Disabled нет: компонент не интерактивен.</div>
+    </div>
+  </div></div>
+
+  <div class="row"><div class="shot">
+    <div class="name">Top app bar · small 72</div>
+    <div class="frame cmp" id="cmp-top-app-bar">
+      <div class="h">Home: марка + название + индикатор сети + иконки</div>
+      <div class="stage" style="margin-top:16px; overflow:visible">
+        <div class="appbar demo">
+          <span class="mark"><span class="icon">play_arrow</span></span><span class="title-l">TubeNX</span><span class="spacer"></span>
+          <span class="net-dot"></span><span class="ibtn s44"><span class="icon">search</span></span><span class="ibtn s44"><span class="icon">settings</span></span>
+        </div>
+        <div class="redline" style="inset:0"><span>высота 72 · поля 24 · зазор 12</span></div>
+      </div>
+      <div class="h">С «назад» и заголовком</div>
+      <div class="stage">
+        <div class="appbar demo"><span class="ibtn back"><span class="icon">arrow_back</span></span><span class="headline-s">Настройки</span></div>
+      </div>
+      <div class="h">Состояния иконок</div>
+      <div class="stage">
+        <div class="appbar demo">
+          <span class="mark"><span class="icon">play_arrow</span></span><span class="title-l">TubeNX</span><span class="spacer"></span>
+          <span class="ibtn s44 is-hover"><span class="icon">search</span></span><span class="ibtn s44 is-focus"><span class="icon">settings</span></span>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="appbar demo"><span class="ibtn back is-pressed"><span class="icon">arrow_back</span></span><span class="headline-s">Настройки</span><span class="spacer"></span><span class="ibtn s44 is-disabled"><span class="icon">refresh</span></span></div>
+      </div>
+      <div class="line cap" style="gap:24px"><span>Вверху: search — Hover, settings — Focus</span><span>Внизу: назад — Pressed, refresh — Disabled</span></div>
+      <div class="h">Сеть недоступна: точки нет</div>
+      <div class="stage">
+        <div class="appbar demo">
+          <span class="mark"><span class="icon">play_arrow</span></span><span class="title-l">TubeNX</span><span class="spacer"></span>
+          <span class="ibtn s44"><span class="icon">search</span></span><span class="ibtn s44"><span class="icon">settings</span></span>
+        </div>
+      </div>
+      <div class="specbox"><b>Top app bar · small</b> · высота 72, на всю ширину экрана, без тени и без разделителя · поля 24 · зазор между элементами 12
+Home: марка 32×32 (squircle, радиус 30 %, play 22 залитый) → 12 → «TubeNX» · справа: точка сети 7 → search 44 → settings 44 · между иконками 12: зоны нажатия 48 не сходятся ближе 8
+С «назад»: icon button 48 (сдвиг влево на 4, иконка встаёт на поле 32) → 12 → заголовок экрана
+Типографика: название приложения titleLarge 22/28 Medium · заголовок экрана headlineSmall 24/32 Regular
+Роли: фон surface · текст onSurface · иконки onSurfaceVariant · марка primary / onPrimary · точка сети tertiary (только когда сеть есть)
+Состояния — у icon button: Hover 8 %, Pressed 10 %, Focus — кольцо 3 px primary + заливка 10 %, Disabled — opacity 38 %. Сам бар не интерактивен.</div>
+    </div>
+  </div></div>
+
+  <div class="row"><div class="shot">
+    <div class="name">Navigation bar · Concept — в текущей архитектуре нет</div>
+    <div class="frame cmp" id="cmp-navigation-bar">
+      <span class="concept-tag">Concept — в текущей архитектуре нет</span>
+      <div class="h">3 пункта, выбрана «Главная»</div>
+      <div class="stage" style="margin-top:16px; overflow:visible">
+        <div class="navbar">
+          <div class="item is-selected"><span class="pill"><span class="icon fill">home</span></span>Главная</div>
+          <div class="item"><span class="pill"><span class="icon">search</span></span>Поиск</div>
+          <div class="item"><span class="pill"><span class="icon">settings</span></span>Настройки</div>
+        </div>
+        <div class="redline" style="inset:0"><span>высота 80 · индикатор 64×32 · иконка 24</span></div>
+      </div>
+      <div class="h">Состояния пункта: unselected</div>
+      <div class="stage">
+        <div class="navbar n4">
+          <div class="item"><span class="pill"><span class="icon">search</span></span>Default</div>
+          <div class="item is-hover"><span class="pill"><span class="icon">search</span></span>Hover</div>
+          <div class="item is-focus"><span class="pill"><span class="icon">search</span></span>Focus</div>
+          <div class="item is-pressed"><span class="pill"><span class="icon">search</span></span>Pressed</div>
+          <div class="item is-disabled"><span class="pill"><span class="icon">search</span></span>Disabled</div>
+        </div>
+      </div>
+      <div class="h">Состояния пункта: selected</div>
+      <div class="stage">
+        <div class="navbar n4">
+          <div class="item is-selected"><span class="pill"><span class="icon fill">home</span></span>Default</div>
+          <div class="item is-selected is-hover"><span class="pill"><span class="icon fill">home</span></span>Hover</div>
+          <div class="item is-selected is-focus"><span class="pill"><span class="icon fill">home</span></span>Focus</div>
+          <div class="item is-selected is-pressed"><span class="pill"><span class="icon fill">home</span></span>Pressed</div>
+          <div class="item is-selected is-disabled"><span class="pill"><span class="icon fill">home</span></span>Disabled</div>
+        </div>
+      </div>
+      <div class="specbox"><b>Navigation bar</b> · <b>концепт: в текущей архитектуре приложения нижней навигации нет, в основные макеты не входит</b>
+Высота 80, на всю ширину экрана, без тени · 3 пункта равной ширины: Главная, Поиск, Настройки · индикатор 64×32, радиус full, отступ сверху 12 · иконка 24 (у выбранного — залитая) · индикатор → подпись 4 · зона нажатия — весь пункт (≥ 48×80)
+Типографика: подпись labelMedium 12/16 Medium
+Роли: фон surfaceContainer · unselected — иконка и подпись onSurfaceVariant · selected — индикатор secondaryContainer, иконка onSecondaryContainer, подпись onSurface
+Состояния: Hover 8 %, Pressed 10 % на индикаторе · Focus — кольцо 3 px primary вокруг индикатора, отступ 2 + заливка · Disabled — opacity 38 %
+На ТВ контент пунктов держится в безопасной зоне: 64 по бокам, подписи не ниже 36 от нижнего края.</div>
+    </div>
+  </div></div>
+
+  <div class="row"><div class="shot">
+    <div class="name">Empty state</div>
+    <div class="frame cmp" id="cmp-empty-state">
+      <div class="h">Пустая лента</div>
+      <div class="stage" style="padding:32px 0">
+        <div class="empty demo"><span class="icon s64 glyph">video_library</span><h2>Пока ничего нет</h2><p>Обновите ленту или проверьте обход DPI</p><span class="btn tonal"><span class="icon">refresh</span>Обновить</span></div>
+      </div>
+      <div class="h">Ничего не найдено</div>
+      <div class="stage" style="padding:32px 0">
+        <div class="empty demo"><span class="icon s64 glyph">search_off</span><h2>Ничего не найдено</h2><p>Попробуйте другие слова или запрос короче</p><span class="btn tonal">Изменить запрос</span></div>
+      </div>
+      <div class="h">Размеры и кнопка в фокусе</div>
+      <div class="stage" style="padding:40px 0 32px">
+        <div class="empty demo">
+          <span class="rl" data-r="иконка 64" style="margin:0"><span class="icon s64 glyph">search</span></span>
+          <span class="rl" data-r="16 ↑ · headlineMedium 28/36" style="margin-top:16px"><h2 style="margin:0">Найдите что посмотреть</h2></span>
+          <span class="rl" data-r="" style="margin-top:8px"><p style="margin:0">Нажмите на поле — откроется клавиатура Switch</p></span>
+          <span class="tt" data-r="24 ↑ · tonal M 40 · touch 48" style="margin-top:36px"><span class="btn tonal is-focus" style="margin:0">Обновить</span></span>
+        </div>
+      </div>
+      <div class="specbox"><b>Empty state</b> · колонка по центру экрана, выравнивание по центру · иконка 64 → 16 → заголовок → 8 → текст (1–2 строки, не шире 480) → 24 → кнопка tonal M 40 (зона нажатия 48)
+Типографика: заголовок headlineMedium 28/36 Regular (в поиске по ТЗ §4.3 — headlineSmall 24/32) · текст bodyMedium 14/20 Regular · кнопка labelLarge 14/20 Medium
+Роли: иконка outline · заголовок onSurface · текст onSurfaceVariant · кнопка secondaryContainer / onSecondaryContainer · фон surface
+Состояния — только у кнопки (см. Button). С геймпада кнопка получает фокус сразу при показе пустого состояния.
+Иконки: video_library — пустая лента · search — начало поиска (кнопки нет) · search_off — ничего не найдено · иллюстраций, кроме иконки, нет.</div>
+    </div>
+  </div></div>
+
+  <div class="row"><div class="shot">
+    <div class="name">Skeleton</div>
+    <div class="frame cmp" id="cmp-skeleton">
+      <div class="h">Обложка 296×166 и 240×135</div>
+      <div class="line" style="align-items:flex-end; gap:16px">
+        <span class="rl" data-r="296×166 · радиус 16"><div class="sk" style="width:296px; height:166px; border-radius:16px"></div></span>
+        <span class="rl" data-r="240×135 · радиус 12"><div class="sk" style="width:240px; height:135px; border-radius:12px"></div></span>
+      </div>
+      <div class="h">Строка</div>
+      <div class="line" style="align-items:flex-end; gap:24px">
+        <span class="rl" data-r="16 · радиус 8"><div class="sk" style="width:264px; height:16px"></div></span>
+        <span class="rl" data-r="16"><div class="sk" style="width:180px; height:16px"></div></span>
+        <span class="rl" data-r="12"><div class="sk" style="width:80px; height:12px"></div></span>
+      </div>
+      <div class="h">Карточка видео 296×256 · фазы пульсации</div>
+      <div class="line" style="gap:16px; flex-wrap:nowrap; align-items:flex-start">
+        <div class="col"><span class="cap">opacity 1.0</span>
+          <div class="vcard skeleton"><div class="cover"></div><div class="sk l1"></div><div class="sk l2"></div><div class="sk l3"></div></div></div>
+        <div class="col"><span class="cap">opacity 0.6</span>
+          <div class="vcard skeleton" style="opacity:.6"><div class="cover"></div><div class="sk l1"></div><div class="sk l2"></div><div class="sk l3"></div></div></div>
+      </div>
+      <div class="h">Карточка «Продолжить просмотр» и строка списка</div>
+      <div class="line" style="gap:24px; flex-wrap:nowrap; align-items:flex-start">
+        <div style="width:240px; flex:none"><div class="sk" style="height:135px; border-radius:12px"></div><div class="sk" style="height:14px; width:200px; margin-top:9px"></div></div>
+        <div style="flex:1">
+          <div class="li two" style="padding:0"><div class="sk" style="width:24px; height:24px; border-radius:999px; flex:none"></div><div class="main"><div class="sk" style="height:16px; width:220px"></div><div class="sk" style="height:12px; width:120px; margin-top:8px"></div></div></div>
+          <div class="divider"></div>
+          <div class="li two" style="padding:0"><div class="sk" style="width:24px; height:24px; border-radius:999px; flex:none"></div><div class="main"><div class="sk" style="height:16px; width:180px"></div><div class="sk" style="height:12px; width:96px; margin-top:8px"></div></div></div>
+        </div>
+      </div>
+      <div class="specbox"><b>Skeleton</b> · плоская заливка surfaceContainerHigh, без шиммера и без градиента · обложка: 296×166, радиус 16 (или 240×135, радиус 12) · строка: высота 16 (название) или 12 (подпись), радиус 8
+Карточка видео 296×256: обложка → 12 → строка 264×16 → 8 → строка 180×16 → 10 → строка 120×12 — габарит совпадает с настоящей карточкой, сетка при загрузке не прыгает
+Анимация: пульсация opacity 0.6 → 1.0 → 0.6 за 1,2 с, все скелетоны экрана синхронно; допустимо без анимации
+Роли: surfaceContainerHigh на surface · на Home при загрузке — 8 карточек (2 ряда по 4)
+Не интерактивен: состояний Hover / Focus / Pressed / Disabled нет, фокус геймпада на скелетон не встаёт.</div>
+    </div>
+  </div></div>
+
+  <div class="row"><div class="shot">
+    <div class="name">Focus ring</div>
+    <div class="frame cmp" id="cmp-focus-ring">
+      <div class="h">Анатомия</div>
+      <div class="line" style="gap:24px; flex-wrap:nowrap; padding:8px">
+        <span class="fr-big is-focus"></span>
+        <span class="body-s muted">Кольцо 3 px primary снаружи элемента, зазор 2 px. Радиус кольца = радиус элемента + 2. Вместе с кольцом — подложка: state layer 10 % или контейнер primaryContainer. Фокус не кодируется одним цветом: меняется и толщина контура.</span>
+      </div>
+      <div class="h">Button · Chip · Icon button</div>
+      <div class="line" style="gap:20px; padding:4px 5px">
+        <span class="btn filled is-focus">Повторить</span>
+        <span class="btn tonal is-focus"><span class="icon">refresh</span>Обновить</span>
+        <span class="btn text is-focus">Назад</span>
+        <span class="chip is-focus">В тренде</span>
+        <span class="chip is-selected is-focus">Главная</span>
+        <span class="ibtn s44 is-focus"><span class="icon">search</span></span>
+        <span class="ibtn tonal is-focus"><span class="icon">arrow_back</span></span>
+      </div>
+      <div class="h">Сегмент и строка списка — кольцо внутрь (элемент обрезан контейнером)</div>
+      <div class="seg"><div class="is-selected">Split</div><div class="is-focus">Multi</div><div>Disorder</div><div>TLS</div></div>
+      <div class="listbox">
+        <div class="li body-l"><span class="icon">history</span><div class="main clamp1">рамэн рецепт из Осаки</div><span class="icon end muted">north_west</span></div>
+        <div class="li body-l is-focus"><span class="icon">history</span><div class="main clamp1">обход dpi 2026</div><span class="icon end muted">north_west</span></div>
+      </div>
+      <div class="h">Карточки на светлой и на тёмной обложке</div>
+      <div class="frow">
+        <div class="vcard is-focus"><div class="cover"><div class="th light-cover"></div><span class="badge">12:48</span><span class="play"><span class="icon fill">play_arrow</span></span></div>
+          <div class="title">Светлая обложка: белый фон, снег, интерфейсы</div><div class="channel">Дизайн-кухня</div><div class="meta">1,2 млн просмотров • 3 дня назад</div></div>
+        <div class="ccard is-focus"><div class="cover"><div class="th light-cover"></div><div class="watch"><i style="width:62%"></i></div></div><div class="title">Светлая обложка</div></div>
+        <div class="vcard is-focus"><div class="cover"><div class="th dark-cover"></div><span class="badge">1:02:13</span><span class="play"><span class="icon fill">play_arrow</span></span></div>
+          <div class="title">Тёмная обложка: ночная съёмка, титры, космос</div><div class="channel">Network Notes</div><div class="meta">58 тыс. просмотров • 9 дней назад</div></div>
+        <div class="ccard is-focus"><div class="cover"><div class="th dark-cover"></div><div class="watch"><i style="width:28%"></i></div></div><div class="title">Тёмная обложка</div></div>
+      </div>
+      <div class="h">Элементы плеера: светлый кадр под нижним скримом</div>
+      <div class="vframe dark onscrim" style="gap:24px; padding:20px">
+        <span class="chip on-video is-focus">720p</span>
+        <span class="ibtn on-video is-focus"><span class="icon">replay_10</span></span>
+        <span class="chip on-video">SNI-обход</span>
+        <span class="ibtn on-video"><span class="icon">more_vert</span></span>
+      </div>
+      <div class="specbox"><b>Focus ring</b> · кольцо 3 px primary снаружи элемента, зазор 2 · радиус = радиус элемента + 2 (кнопка, чип, icon button — full; карточка настроек 20 → 22; обложка 16 → 18; обложка «Продолжить просмотр» 12 → 14)
+Подложка обязательна: кнопки, чипы, icon button — state layer 10 % цветом содержимого · сегмент и строка списка — заливка primary 10 %, кольцо рисуется внутрь (элемент обрезан контейнером) · карточка видео — контейнер primaryContainer под всей карточкой (вылет 8, радиус 22), текст onPrimaryContainer, на обложке overlay белый 6 % и play 48
+На любой обложке кольцо читается: оно лежит не на обложке, а на подложке primaryContainer; контраст primary / primaryContainer — 5,4:1 в тёмной теме и 5,0:1 в светлой
+На видео: кольцо primary тёмной схемы + подложка белый 26 % (чип) или 10 % (icon button); контролы плеера всегда лежат на скриме, поэтому кольцо читается и на светлом кадре
+Фокус перемещается по видимой сетке; появление кольца — без анимации размера, fade 100 мс.</div>
+    </div>
+  </div></div>
+
+  <div class="row"><div class="shot">
+    <div class="name">Карточка видео · «Продолжить просмотр»</div>
+    <div class="frame cmp" id="cmp-video-card" data-half="p16">
+      <div class="h">Карточка видео 296×256</div>
+      <div class="vgrid">
+        <div class="col"><span class="cap">Default</span><div class="vcard"><div class="cover"><div class="th t1"></div><span class="badge">12:48</span><span class="play"><span class="icon fill">play_arrow</span></span></div>
+          <div class="title">Как устроен Material 3 Expressive: формы, цвет и движение на практике</div><div class="channel">Дизайн-кухня</div><div class="meta">1,2 млн просмотров • 3 дня назад</div></div></div>
+        <div class="col"><span class="cap">Hover</span><div class="vcard is-hover"><div class="cover"><div class="th t1"></div><span class="badge">12:48</span><span class="play"><span class="icon fill">play_arrow</span></span></div>
+          <div class="title">Как устроен Material 3 Expressive: формы, цвет и движение на практике</div><div class="channel">Дизайн-кухня</div><div class="meta">1,2 млн просмотров • 3 дня назад</div></div></div>
+        <div class="col" style="margin-top:12px"><span class="cap">Focus</span><div class="vcard is-focus"><div class="cover"><div class="th t1"></div><span class="badge">12:48</span><span class="play"><span class="icon fill">play_arrow</span></span></div>
+          <div class="title">Как устроен Material 3 Expressive: формы, цвет и движение на практике</div><div class="channel">Дизайн-кухня</div><div class="meta">1,2 млн просмотров • 3 дня назад</div></div></div>
+        <div class="col" style="margin-top:12px"><span class="cap">Pressed</span><div class="vcard is-pressed"><div class="cover"><div class="th t1"></div><span class="badge">12:48</span><span class="play"><span class="icon fill">play_arrow</span></span></div>
+          <div class="title">Как устроен Material 3 Expressive: формы, цвет и движение на практике</div><div class="channel">Дизайн-кухня</div><div class="meta">1,2 млн просмотров • 3 дня назад</div></div></div>
+      </div>
+      <div class="h" style="margin-top:8px">Название из 125 символов: обрезка 2 строками, высота та же</div>
+      <div class="vgrid" style="margin-top:16px">
+        <span class="rl" data-r="296×256 · обычное название" style="margin:0; display:block"><div class="vcard"><div class="cover"><div class="th t3"></div><span class="badge">8:21</span></div>
+          <div class="title">Готовим рамэн дома</div><div class="channel">Cook Easy</div><div class="meta">58 тыс. просмотров • 9 дней назад</div></div></span>
+        <span class="rl" data-r="296×256 · 125 символов" style="margin:0; display:block"><div class="vcard"><div class="cover"><div class="th t2"></div><span class="badge">1:02:13</span></div>
+          <div class="title">Большой разбор: как собрать собственный клиент YouTube для Nintendo Switch на devkitPro, настроить обход DPI и не сойти с ума</div><div class="channel">Очень длинное название канала, которое тоже не помещается в одну строку</div><div class="meta">1 200 000 просмотров • 3 дня назад</div></div></span>
+      </div>
+      <div class="h" style="margin-top:8px">«Продолжить просмотр» 240×161</div>
+      <div class="cgrid" style="padding:0 6px">
+        <div class="col"><span class="cap">Default</span><div class="ccard"><div class="cover"><div class="th t6"></div><div class="watch"><i style="width:28%"></i></div></div><div class="title">Lo-Fi Hip Hop Radio — beats to relax/study to</div></div></div>
+        <div class="col"><span class="cap">Hover</span><div class="ccard is-hover"><div class="cover"><div class="th t6"></div><div class="watch"><i style="width:28%"></i></div></div><div class="title">Lo-Fi Hip Hop Radio — beats to relax/study to</div></div></div>
+        <div class="col" style="margin-top:8px"><span class="cap">Focus</span><div class="ccard is-focus"><div class="cover"><div class="th t6"></div><div class="watch"><i style="width:28%"></i></div></div><div class="title">Lo-Fi Hip Hop Radio — beats to relax/study to</div></div></div>
+        <div class="col" style="margin-top:8px"><span class="cap">Pressed</span><div class="ccard is-pressed"><div class="cover"><div class="th t6"></div><div class="watch"><i style="width:28%"></i></div></div><div class="title">Lo-Fi Hip Hop Radio — beats to relax/study to</div></div></div>
+      </div>
+      <div class="specbox"><b>Карточка видео</b> · 296×256, высота фиксирована · обложка 296×166 (16:9), радиус 16 → 8 → название 2 строки 16/22 (блок 44) → 4 → канал 1 строка → 2 → метаданные 1 строка · бейдж длительности: правый нижний угол, отступ 8, паддинг 6 / 2, радиус 6
+Типографика: название titleMedium 16/22 Medium, не более 2 строк, далее многоточие · канал и метаданные bodySmall 12/16 Regular, 1 строка · бейдж labelMedium 12/16 Medium
+Роли: название onSurface · канал и метаданные onSurfaceVariant · бейдж чёрный 70 % / белый · бейдж эфира errorContainer / onErrorContainer · теней нет
+Состояния: Hover — overlay белый 6 % + play 48 (чёрный 45 %, белый треугольник 24) · Focus — то же + кольцо 3 px primary вокруг обложки (отступ 2, радиус 18) + подложка primaryContainer с вылетом 8, текст onPrimaryContainer · Pressed — overlay белый 10 %, без play · карточка не сдвигается и не масштабируется · Disabled нет
+<b>«Продолжить просмотр»</b> · 240×161 · обложка 240×135, радиус 12 · прогресс просмотра 3 px по нижнему краю обложки: дорожка белый 30 %, заполнение primary · 6 → название 1 строка titleSmall 14/20 Medium, onSurface · зазор между карточками 12
+Состояния: Hover — overlay белый 6 % · Focus — кольцо 3 px primary (радиус 14) + подложка primaryContainer с вылетом 6 · Pressed — overlay белый 10 %</div>
+    </div>
+  </div></div>
+</div>
+</body>
+</html>

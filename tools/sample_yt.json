@@ -1,0 +1,308 @@
+{
+  "responseContext": {
+    "serviceTrackingParams": [
+      {
+        "service": "GFEEDBACK",
+        "params": [
+          { "key": "is_viewed_live", "value": "False" }
+        ]
+      }
+    ],
+    "mainAppWebResponseContext": { "loggedOut": true },
+    "webResponseContextExtensionData": { "hasDecorated": true }
+  },
+  "contents": {
+    "twoColumnBrowseResultsRenderer": {
+      "tabs": [
+        {
+          "tabRenderer": {
+            "selected": true,
+            "title": "Главная",
+            "content": {
+              "richGridRenderer": {
+                "contents": [
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "videoRenderer": {
+                          "videoId": "dQw4w9WgXcQ",
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://i.ytimg.com/vi/dQw4w9WgXcQ/hq720.jpg?sqp=abc",
+                                "width": 360,
+                                "height": 202
+                              },
+                              {
+                                "url": "https://i.ytimg.com/vi/dQw4w9WgXcQ/hq720.jpg?sqp=abc&rs=def",
+                                "width": 720,
+                                "height": 404
+                              }
+                            ]
+                          },
+                          "title": {
+                            "runs": [
+                              { "text": "Switch homebrew: собираем TubeNX" }
+                            ]
+                          },
+                          "longBylineText": {
+                            "runs": [
+                              {
+                                "text": "TechFan",
+                                "navigationEndpoint": {
+                                  "browseEndpoint": {
+                                    "browseId": "UC1234567890abcdef",
+                                    "canonicalBaseUrl": "/@techfan"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          "publishedTimeText": { "simpleText": "3 дня назад" },
+                          "viewCountText": { "simpleText": "1 234 567 просмотров" },
+                          "lengthText": {
+                            "accessibility": {
+                              "accessibilityData": {
+                                "label": "12 минут 34 секунды"
+                              }
+                            },
+                            "simpleText": "12:34"
+                          },
+                          "navigationEndpoint": {
+                            "clickTrackingParams": "xyz",
+                            "commandMetadata": {
+                              "webCommandMetadata": {
+                                "url": "/watch?v=dQw4w9WgXcQ",
+                                "webPageType": "WEB_PAGE_TYPE_WATCH"
+                              }
+                            },
+                            "watchEndpoint": {
+                              "videoId": "dQw4w9WgXcQ",
+                              "watchEndpointSupportedOnesieConfig": {
+                                "html5PlaybackOnesieConfig": {
+                                  "commonConfig": { "url": "https://rr1---sn.example.googlevideo.com/init.pl" }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "trackingParams": "tracking-1"
+                    }
+                  },
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "videoRenderer": {
+                          "videoId": "aBcDeFgHiJk",
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://i.ytimg.com/vi/aBcDeFgHiJk/hqdefault.jpg",
+                                "width": 480,
+                                "height": 360
+                              }
+                            ]
+                          },
+                          "title": {
+                            "simpleText": "Прямой эфир: Nintendo Direct"
+                          },
+                          "ownerText": {
+                            "runs": [
+                              {
+                                "text": "Nintendo RU",
+                                "navigationEndpoint": {
+                                  "browseEndpoint": {
+                                    "browseId": "UCnintendo0000000001"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          "publishedTimeText": { "simpleText": "Сейчас" },
+                          "viewCountText": { "simpleText": "24 тыс. зрителей" },
+                          "thumbnailOverlays": [
+                            {
+                              "thumbnailOverlayTimeStatusRenderer": {
+                                "text": { "simpleText": "LIVE" },
+                                "style": "LIVE"
+                              }
+                            }
+                          ],
+                          "badges": [
+                            {
+                              "metadataBadgeRenderer": {
+                                "style": "BADGE_STYLE_TYPE_LIVE_NOW",
+                                "label": "LIVE"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "videoRenderer": {
+                          "videoId": "zZz9yYy8xXx",
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://i.ytimg.com/vi/zZz9yYy8xXx/hqdefault.jpg",
+                                "width": 480,
+                                "height": 360
+                              }
+                            ]
+                          },
+                          "title": {
+                            "runs": [
+                              { "text": "Собираем devkitPro под Linux за 10 минут" }
+                            ]
+                          },
+                          "longBylineText": {
+                            "runs": [
+                              {
+                                "text": "Homebrew Daily",
+                                "navigationEndpoint": {
+                                  "browseEndpoint": { "browseId": "UChomebrew00000001" }
+                                }
+                              }
+                            ]
+                          },
+                          "publishedTimeText": { "simpleText": "2 недели назад" },
+                          "viewCountText": { "simpleText": "87 654 просмотра" },
+                          "lengthText": { "simpleText": "10:01" }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "gridVideoRenderer": {
+                          "videoId": "gRiD1234567",
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://i.ytimg.com/vi/gRiD1234567/hqdefault.jpg",
+                                "width": 480,
+                                "height": 360
+                              }
+                            ]
+                          },
+                          "title": { "simpleText": "Тест производительности Switch" },
+                          "shortBylineText": {
+                            "runs": [
+                              {
+                                "text": "Gadget Lab",
+                                "navigationEndpoint": {
+                                  "browseEndpoint": { "browseId": "UCgadget00000000001" }
+                                }
+                              }
+                            ]
+                          },
+                          "publishedTimeText": { "simpleText": "месяц назад" },
+                          "viewCountText": { "simpleText": "2,5 млн просмотров" },
+                          "lengthText": { "simpleText": "1:02:03" }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "videoRenderer": {
+                          "videoId": "kKk7jJj6hHh",
+                          "title": { "simpleText": "Новый рендерер на libnx" },
+                          "viewCountText": { "simpleText": "999 просмотров" },
+                          "publishedTimeText": { "simpleText": "6 часов назад" },
+                          "lengthText": { "simpleText": "4:20" },
+                          "ownerText": {
+                            "runs": [
+                              { "text": "SwitchDev" }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "richSectionRenderer": {
+                      "content": {
+                        "richShelfRenderer": {
+                          "title": {
+                            "runs": [ { "text": "Рекомендуем посмотреть" } ]
+                          },
+                          "contents": [
+                            {
+                              "richItemRenderer": {
+                                "content": {
+                                  "videoRenderer": {
+                                    "videoId": "sHeLf000001",
+                                    "title": { "simpleText": "Йокогама: порт домашних игр" },
+                                    "thumbnail": {
+                                      "thumbnails": [
+                                        {
+                                          "url": "https://i.ytimg.com/vi/sHeLf000001/hqdefault.jpg",
+                                          "width": 480,
+                                          "height": 360
+                                        }
+                                      ]
+                                    },
+                                    "ownerText": {
+                                      "runs": [
+                                        { "text": "Retro Portal" }
+                                      ]
+                                    },
+                                    "viewCountText": { "simpleText": "150 тыс. просмотров" },
+                                    "publishedTimeText": { "simpleText": "1 год назад" },
+                                    "lengthText": { "simpleText": "18:45" }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "richItemRenderer": {
+                                "content": {
+                                  "videoRenderer": {
+                                    "videoId": "sHeLf000002",
+                                    "title": { "simpleText": "Разбор M3-дизайна" },
+                                    "ownerText": {
+                                      "runs": [ { "text": "Design Notes" } ]
+                                    },
+                                    "viewCountText": { "simpleText": "42 тыс. просмотров" },
+                                    "publishedTimeText": { "simpleText": "3 месяца назад" },
+                                    "lengthText": { "simpleText": "8:12" }
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "continuationItemRenderer": {
+                      "trigger": "CONTINUATION_TRIGGER_ON_ITEM_SHOWN",
+                      "continuationEndpoint": {
+                        "clickTrackingParams": "cont-tracking",
+                        "continuationCommand": {
+                          "token": "4qmFsgJVEhhVQ2hvbWVicmV3MDAwMDAwMDAx",
+                          "request": "CONTINUATION_REQUEST_TYPE_BROWSE"
+                        }
+                      }
+                    }
+                  }
+                ],
+                "trackingParams": "grid-tracking"
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "trackingParams": "page-tracking"
+}

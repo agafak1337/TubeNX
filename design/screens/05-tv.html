@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>TubeNX — 05 TV</title>
+<link rel="stylesheet" href="../assets/base.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/app.css">
+<script src="../assets/frame.js"></script>
+<style>
+/* Фрейм 1920×1080 = канвас 1280×720 × 1,5. Все размеры ниже — в px канваса 720p. */
+.frame.tv { width: 1920px; height: 1080px; }
+.shot > .spec { max-width: 1920px; }
+.cv { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; overflow: hidden; transform-origin: 0 0;
+      background: var(--surface); color: var(--on-surface);
+      --mx: 64px; --ty: 24px; --by: 84px; --cw: 276px; --ch: 155px; }
+.frame.tv > .cv { transform: scale(1.5); }
+.frame.video .cv { background: #000; color: #fff; }
+/* Раскладка handheld «как есть» — только для сравнения вариантов */
+.cv.hh { --mx: 24px; --ty: 0px; --by: 88px; --cw: 296px; --ch: 166px; }
+
+/* Безопасная зона: 64 по бокам, 36 сверху и снизу */
+.safezone { position: absolute; inset: 0; border: solid rgba(79,209,255,.16); border-width: 36px 64px; z-index: 49; pointer-events: none; }
+.safe > span { position: absolute; left: 0; top: -28px; font: 500 12px/16px "Google Sans"; color: #4fd1ff; background: rgba(0,0,0,.72); padding: 0 4px; white-space: nowrap; }
+
+/* Общие блоки в доке: поля 64, сдвиг верха 24 */
+.cv .appbar { top: var(--ty); padding: 0 var(--mx); }
+/* Поле поиска 52 px: при top 24 оно начиналось бы с y=34 и на 2 px заходило в safe area 36 */
+.cv .shead { top: calc(var(--ty) + 6px); padding: 0 var(--mx); }
+.cv .appbar .back { margin-left: 0; }
+.appbar .actions { display: flex; gap: 8px; }
+.appbar .net-dot { margin-right: -4px; }
+.shead { position: absolute; left: 0; right: 0; height: 72px; display: flex; align-items: center; gap: 12px; background: var(--surface); }
+.searchbar .close { margin-right: -8px; }
+.cv .chip-row { left: var(--mx); top: calc(var(--ty) + 76px); }
+.viewport { position: absolute; left: 0; right: 0; top: calc(var(--ty) + 124px); bottom: var(--by); overflow: hidden; }
+.viewport > .content { position: absolute; left: 0; right: 0; top: 4px; }
+.strip { position: relative; height: 175px; }
+.strip .section-title { position: absolute; left: var(--mx); top: 0; }
+.strip .cards { position: absolute; left: var(--mx); right: var(--mx); top: 28px; display: flex; gap: 12px; overflow: hidden; }
+.ccard.ov { height: 135px; }
+.ccard.ov .cover::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 72px; z-index: 1;
+                          background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.62) 45%, rgba(0,0,0,.8)); }
+.ccard.ov .title { position: absolute; left: 12px; right: 12px; bottom: 11px; margin: 0; color: #fff; z-index: 2; }
+.ccard.ov .watch { z-index: 2; background: rgba(255,255,255,.22); }
+.light .ccard.ov .watch > i { background: var(--inverse-primary); }
+
+/* Сетка в доке: 4 × 276, зазор 16, поля 64 (1152 = 4·276 + 3·16); обложка 276×155 */
+.cv .grid { grid-template-columns: repeat(4, var(--cw)); gap: 16px; padding: 0 var(--mx); }
+.cv .grid.results { position: absolute; left: 0; top: calc(var(--ty) + 94px); row-gap: 24px; }
+.cv .vcard { width: var(--cw); height: calc(var(--ch) + 90px); }
+.cv .vcard .cover { width: var(--cw); height: var(--ch); }
+
+/* Search: пустое состояние */
+.empty.search h2 { font: 400 24px/32px "Google Sans"; }
+.recent { position: absolute; left: 280px; width: 720px; }
+.recent .section-title { padding: 0 16px; height: 28px; }
+.recent .li .main > div:first-child { font: 400 16px/24px "Google Sans"; letter-spacing: .15px; }
+.recent .divider { margin: 0 16px; }
+
+/* Player в доке: всё интерактивное внутри 64 / 36 */
+.vid { position: absolute; inset: 0; overflow: hidden; background: linear-gradient(#0a0f26 0%, #1b2350 58%, #2b2144 100%); }
+.vid i { position: absolute; display: block; border-radius: 50%; }
+.vid .a { left: 900px; top: 86px; width: 96px; height: 96px; background: #e9e6d6; }
+.vid .b { left: -120px; top: 430px; width: 980px; height: 520px; background: #10173a; }
+.vid .c { left: 520px; top: 500px; width: 1000px; height: 480px; background: #070b1c; }
+.p-back { position: absolute; left: 64px; top: 36px; }
+.p-title { position: absolute; left: 120px; top: 36px; width: 860px; color: #fff; }
+.p-sub { position: absolute; left: 120px; top: 68px; width: 860px; color: rgba(255,255,255,.78); }
+.tc { position: absolute; top: 596px; height: 20px; padding: 2px 6px; border-radius: 6px; background: rgba(0,0,0,.6); color: #fff;
+      font: 500 12px/16px "Google Sans"; letter-spacing: .3px; }
+.tc.l { left: 64px; } .tc.r { right: 64px; }
+.seek { position: absolute; left: 136px; top: 584px; width: 1028px; height: 44px; }
+.seek.is-focus .buffer { height: 6px; margin-top: -3px; }
+.seek.is-focus .thumb { box-shadow: 0 0 0 3px #fff, 0 0 0 5px rgba(0,0,0,.6); }
+.p-row { position: absolute; top: 636px; height: 48px; display: flex; gap: 8px; align-items: center; }
+.p-row.l { left: 64px; } .p-row.r { right: 64px; }
+.vol { width: 140px; height: 48px; flex: none; }
+.vol .fill, .vol .thumb { background: #fff; }
+.tap { height: 48px; display: flex; align-items: center; flex: none; }
+.chip.on-video .icon { margin-left: -6px; }
+.dim { position: absolute; inset: 0; background: rgba(0,0,0,.12); }
+
+/* Settings: две колонки 560, зазор 24 — 1144, поля 68 (внутри safe area 64) */
+.set { position: absolute; left: 68px; top: calc(var(--ty) + 72px); display: flex; gap: 24px; padding: 8px 0 36px; }
+.set .col { width: 560px; display: flex; flex-direction: column; gap: 20px; }
+.set .overline { display: block; margin: 0 0 8px 20px; }
+.srow { display: flex; align-items: center; gap: 16px; min-height: 48px; }
+.srow .main { flex: 1; min-width: 0; }
+.srow .main .muted { margin-top: 2px; }
+.srow.tight { margin-top: -8px; }
+.card .seg { margin-top: 8px; }
+.gap8 { margin-top: 8px; } .gap12 { margin-top: 12px; } .gap16 { margin-top: 16px; }
+.seg > div.is-focus { background: color-mix(in srgb, var(--primary) 10%, transparent); }
+.status { display: inline-flex; align-items: center; gap: 6px; font: 500 14px/20px "Google Sans"; letter-spacing: .1px; color: var(--tertiary); }
+.stats { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; color: var(--on-surface-variant); }
+.seeds { display: flex; gap: 8px; margin: 4px 0 -8px -8px; }
+.seed { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none; }
+.seed > b { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; }
+.seed.is-selected > b { outline: 2px solid var(--primary); outline-offset: 3px; }
+.stepper { display: flex; align-items: center; gap: 8px; }
+.stepper .val { width: 88px; text-align: center; font: 500 22px/28px "Google Sans"; white-space: nowrap; }
+.stepper .btn { padding: 0 16px; min-width: 64px; }
+.card .btn.text.flush { margin-left: -12px; }
+.card .btn.text .icon { margin-right: 0; }
+/* Низ страницы настроек: контент уходит под край с затуханием, в safe area 684–720 ничего интерактивного */
+.fade { position: absolute; left: 0; right: 0; bottom: 0; height: 92px; pointer-events: none;
+        background: linear-gradient(to bottom, color-mix(in srgb, var(--surface) 0%, transparent), var(--surface) 30%); }
+.keys { margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--outline-variant); color: var(--on-surface-variant); display: flex; flex-direction: column; gap: 2px; }
+
+/* Фокус поверх видео: подложка primaryContainer + кольцо 3 px primary + тёмная обводка (светлый кадр) */
+.ibtn.on-video.is-focus, .chip.on-video.is-focus { background: var(--primary-container); color: var(--on-primary-container);
+                     outline: 3px solid var(--primary); outline-offset: 2px; box-shadow: 0 0 0 7px rgba(0,0,0,.7); }
+.ibtn.on-video.is-focus::after, .chip.on-video.is-focus::after { opacity: 0; }
+.seek .value { bottom: 40px; }
+.vol .fill, .vol .thumb { background: #fff; }
+
+/* Лист вариантов */
+.mini { position: absolute; width: 563px; height: 317px; overflow: hidden; border-radius: 12px; outline: 1px solid var(--outline-variant); }
+.mini > .cv { transform: scale(.44); }
+.vlabel { position: absolute; width: 563px; }
+.vlabel .muted { margin-top: 6px; white-space: pre-line; }
+.rec { display: inline-flex; height: 24px; align-items: center; padding: 0 10px; border-radius: 999px; margin-left: 8px; vertical-align: 2px;
+       background: var(--tertiary-container); color: var(--on-tertiary-container); font: 500 12px/16px "Google Sans"; letter-spacing: .3px; }
+</style>
+</head>
+<body>
+<div class="board">
+  <div>
+    <div class="board-title">05 TV</div>
+    <div class="board-sub">Ключевые экраны в доке: 1920×1080 = канвас 1280×720 × 1,5. Размеры в спеках — в px канваса 720p. Безопасная зона 5 %: 64 по бокам, 36 сверху и снизу (в 1080p — 96 и 54); на фреймах «safe area» она подсвечена, всё интерактивное лежит внутри.</div>
+  </div>
+
+  <div class="row">
+    <div class="shot"><div class="name">TV / Home / Норма / Тёмная</div>
+      <div class="frame tv dark" id="tv-home" data-tv='{"s":"home"}'></div>
+      <div class="spec">Поля 64, верх сдвинут на 24: app bar y 24–96 (кнопки 44×44 с y 38), чипы y 100–148, область скролла y 148–636, низ 84 — резерв под тосты (тост y 636–684).
+Сетка 4 × 276, зазор 16 (4·276 + 3·16 = 1152 = 1280 − 2·64). Обложка 276×155, радиус 16; карточка 276×245. «Продолжить просмотр» — те же 240×135, лента обрезается по правой границе safe area.</div>
+    </div>
+    <div class="shot"><div class="name">TV / Home / Фокус на карточке + safe area</div>
+      <div class="frame tv dark" id="tv-home-safe" data-tv='{"s":"home","focus":0,"safe":true}'></div>
+      <div class="spec">Голубая рамка — граница safe area (64 / 36), заливка — запретная зона. Интерактивных элементов в ней нет.
+Подложка фокуса (primaryContainer, вылет 8) у крайних карточек заходит в зону на 8 — это декор, сама карточка и кольцо 3 px primary остаются внутри.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot"><div class="name">TV / Home / Норма / Светлая</div>
+      <div class="frame tv light" id="tv-home-light" data-tv='{"s":"home"}'></div>
+      <div class="spec">Та же раскладка, тема light. Роли: фон surface, выбранный чип secondaryContainer, прогресс просмотра поверх обложки — inversePrimary, вторичный текст onSurfaceVariant.</div>
+    </div>
+    <div class="shot"><div class="name">TV / Home / Раскладка в доке: варианты A и B (служебный фрейм)</div>
+      <div class="frame tv dark" id="tv-home-variants" data-tv='{"s":"variants"}'></div>
+      <div class="spec">ТЗ §4.2 задаёт поля 24 и карточку 296, §3.4 — safe area 64 / 36 без интерактивных элементов. В доке оба требования одновременно не выполняются: 4·296 + 3·16 = 1232 &gt; 1152.
+Рекомендация — A. Вопрос вынесен в OPEN_QUESTIONS.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot"><div class="name">TV / Search / Пусто</div>
+      <div class="frame tv dark" id="tv-search-empty" data-tv='{"s":"search","empty":true,"safe":true}'></div>
+      <div class="spec">Шапка: назад 44×44 (y 44–88), поле 52 px в y 40–92 — оба внутри safe area сверху 36; поле x 120…1216. Пустое состояние и «Недавние» (колонка 720 по центру) — как в handheld, сдвиг вниз на 24.</div>
+    </div>
+    <div class="shot"><div class="name">TV / Search / Результаты, фокус на карточке</div>
+      <div class="frame tv dark" id="tv-search-results" data-tv='{"s":"search","q":"обход dpi","focus":5}'></div>
+      <div class="spec">Сетка y=112: 4 × 276, зазор 16 / 24, поля 64. Второй ряд заканчивается на y 626 — до нижней границы safe area (684) остаётся резерв под тост.
+Название из 120 символов обрезается двумя строками.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot"><div class="name">TV / Player / Контролы видны</div>
+      <div class="frame tv video dark" id="tv-player" data-tv='{"s":"player"}'></div>
+      <div class="spec">Скримы как в handheld: верх 190, низ 240. Назад 48×48 в 64,36; заголовок titleLarge x=120 y=36, ширина 860 (до 300 от правого края).
+Таймкоды x=64 / справа 64, y 596; дорожка x 136…1144, зона y 584–628; ряд кнопок y 636–684 (нижний край — граница safe area).</div>
+    </div>
+    <div class="shot"><div class="name">TV / Player / Пауза, фокус на дорожке + safe area</div>
+      <div class="frame tv video dark" id="tv-player-safe" data-tv='{"s":"player","paused":true,"focus":"seek","safe":true}'></div>
+      <div class="spec">Пауза: кадр затемнён на 12 %, в центре play. Фокус дорожки: линия 6, ползунок 20 с белым кольцом 3 px, подпись времени над ползунком.
+Все контролы внутри safe area; в запретной зоне только скримы и кадр.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="shot"><div class="name">TV / Settings / Верх страницы / Тёмная</div>
+      <div class="frame tv dark" id="tv-settings" data-tv='{"s":"settings"}'></div>
+      <div class="spec">App bar y 24–96: назад 44×44 в x=64, «Настройки» headlineSmall. Две колонки по 560, зазор 24 = 1144; поля 68 — блок по центру, целиком внутри safe area (64).
+Контент скроллится под app bar: секция «Звук» уходит под нижнее затухание (градиент surface, 96 px), в safe area 684–720 интерактивных элементов нет.</div>
+    </div>
+    <div class="shot"><div class="name">TV / Settings / Фокус на сегменте + safe area</div>
+      <div class="frame tv dark" id="tv-settings-safe" data-tv='{"s":"settings","focus":"seg","safe":true}'></div>
+      <div class="spec">Фокус сегмента: кольцо 3 px primary внутрь + подложка primary 10 %. Колонки x 68…628 и 652…1212 — в пределах 64…1216.</div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  /* ---------- данные ---------- */
+  var CHIPS = ["Главная", "В тренде", "Музыка", "Игры", "Новости", "Подкасты"];
+  var CC = [
+    { t: "Lo-Fi Hip Hop Radio — beats to relax/study to", th: "t6", p: 28 },
+    { t: "Обход DPI в 2026: что реально работает", th: "t5", p: 62 },
+    { t: "Собираем homebrew NRO с devkitPro за 10 минут", th: "t4", p: 8 },
+    { t: "Готовим рамэн дома — рецепт из Осаки", th: "t3", p: 81 },
+    { t: "История Nintendo: от игральных карт до Switch", th: "t7", p: 45 }
+  ];
+  var V = [
+    { t: "Как устроен Material 3 Expressive: формы, цвет и движение на практике", ch: "Дизайн-кухня", m: "1 200 000 просмотров • 3 дня назад", d: "12:48", th: "t1" },
+    { t: "Обход DPI в 2026: что реально работает", ch: "Network Notes", m: "2 700 000 просмотров • 5 дней назад", d: "1:02:13", th: "t2" },
+    { t: "Готовим рамэн дома — рецепт из Осаки", ch: "Cook Easy", m: "58 000 просмотров • 9 дней назад", d: "8:21", th: "t3" },
+    { t: "Lo-Fi Hip Hop Radio — beats to relax/study to", ch: "Lofi Girl", m: "24 000 смотрят сейчас", d: "В эфире", live: true, th: "t8" },
+    { t: "Пять инди-игр, которые стоит пройти этой зимой", ch: "Пиксельный двор", m: "340 000 просмотров • 2 недели назад", d: "18:04", th: "t5" },
+    { t: "Большое путешествие по зимнему Алтаю на машине: перевалы, ледяные озёра, ночёвки в палатке и съёмка рассвета над долиной — полный маршрут", ch: "Дороги и горы", m: "912 000 просмотров • 6 дней назад", d: "2:14:07", th: "t4" },
+    { t: "История Nintendo: от игральных карт до Switch", ch: "Музей игр", m: "780 000 просмотров • 1 месяц назад", d: "21:37", th: "t7" },
+    { t: "Свет и цвет в интерфейсах: разбираем контраст без догадок", ch: "Дизайн-кухня", m: "96 000 просмотров • 4 дня назад", d: "6:52", th: "t6" }
+  ];
+  var RECENT = [
+    ["Обход DPI в 2026: что реально работает", "Network Notes"],
+    ["Собираем homebrew NRO с devkitPro за 10 минут", "Switch Dev"],
+    ["Lo-Fi Hip Hop Radio — beats to relax/study to", "Lofi Girl"],
+    ["Как устроен Material 3 Expressive: формы, цвет и движение на практике", "Дизайн-кухня"]
+  ];
+  var PTITLE = "Ночная съёмка Млечного Пути: как выбрать место и настройки камеры";
+
+  /* ---------- утилиты ---------- */
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+  function icon(n, cls) { return '<span class="icon' + (cls ? " " + cls : "") + '">' + n + "</span>"; }
+  function chips(sel) {
+    return CHIPS.map(function (c, i) {
+      return '<span class="chip' + (i === (sel || 0) ? " is-selected" : "") + '">' + c + "</span>";
+    }).join("");
+  }
+  function safeZone(label) {
+    return '<div class="safezone"></div><div class="safe">' + (label === false ? "" : "<span>safe area 64 / 36</span>") + "</div>";
+  }
+  function vcard(v, focus) {
+    return '<div class="vcard' + (focus ? " is-focus" : "") + '">' +
+      '<div class="cover"><div class="th ' + v.th + '"></div>' +
+      '<span class="badge' + (v.live ? " live" : "") + '">' + v.d + "</span>" +
+      '<span class="play">' + icon("play_arrow", "fill") + "</span></div>" +
+      '<div class="title">' + esc(v.t) + "</div>" +
+      '<div class="channel">' + esc(v.ch) + "</div>" +
+      '<div class="meta">' + esc(v.m) + "</div></div>";
+  }
+  function ccard(c) {
+    return '<div class="ccard ov"><div class="cover"><div class="th ' + c.th + '"></div>' +
+      '<div class="watch"><i style="width:' + c.p + '%"></i></div>' +
+      '<div class="title">' + esc(c.t) + "</div></div></div>";
+  }
+  function appbar() {
+    return '<div class="appbar"><span class="mark">' + icon("play_arrow") + '</span>' +
+      '<span class="title-l">TubeNX</span><span class="spacer"></span>' +
+      '<div class="actions"><span class="net-dot"></span>' +
+      '<span class="ibtn s44">' + icon("search") + "</span>" +
+      '<span class="ibtn s44">' + icon("settings") + "</span></div></div>";
+  }
+
+  /* ---------- Home ---------- */
+  function home(o) {
+    o = o || {};
+    return '<div class="cv">' + appbar() +
+      '<div class="chip-row abs">' + chips(0) + "</div>" +
+      '<div class="viewport"><div class="content">' +
+        '<div class="strip"><div class="section-title">Продолжить просмотр</div>' +
+          '<div class="cards">' + CC.map(ccard).join("") + "</div></div>" +
+        '<div class="grid">' + V.map(function (v, i) { return vcard(v, o.focus === i); }).join("") + "</div>" +
+      "</div></div>" + (o.safe ? safeZone(!o.quiet) : "") + "</div>";
+  }
+
+  /* ---------- Search ---------- */
+  function search(o) {
+    o = o || {};
+    var h = '<div class="cv"><div class="shead">' +
+      '<span class="ibtn s44">' + icon("arrow_back") + "</span>" +
+      '<div class="searchbar">' + icon("search") +
+        (o.q ? '<span class="text">' + esc(o.q) + "</span>" +
+               '<span class="ibtn s44 close">' + icon("close") + "</span>"
+             : '<span class="placeholder">Поиск на YouTube</span>') +
+      "</div></div>";
+    if (o.empty) {
+      h += '<div class="empty search" style="top:192px">' + icon("search", "s64 glyph") +
+        "<h2>Найдите что посмотреть</h2><p>Нажмите на поле — откроется клавиатура Switch</p></div>";
+      h += '<div class="recent" style="top:368px"><div class="section-title">Недавние</div>' +
+        RECENT.map(function (r) {
+          return '<div class="li two">' + icon("history") + '<div class="main">' +
+            '<div class="clamp1">' + esc(r[0]) + '</div><div class="sub clamp1">' + esc(r[1]) + "</div></div></div>" +
+            '<div class="divider"></div>';
+        }).join("") + "</div>";
+    } else {
+      h += '<div class="grid results">' +
+        V.map(function (v, i) { return vcard(v, o.focus === i); }).join("") + "</div>";
+    }
+    return h + (o.safe ? safeZone() : "") + "</div>";
+  }
+
+  /* ---------- Player ---------- */
+  function player(o) {
+    o = o || {};
+    var f = o.focus || "";
+    return '<div class="cv">' +
+      '<div class="vid"><i class="a"></i><i class="b"></i><i class="c"></i></div>' +
+      (o.paused ? '<div class="dim"></div>' : "") +
+      '<div class="scrim-top"></div><div class="scrim-bottom"></div>' +
+      '<span class="ibtn on-video p-back' + (f === "back" ? " is-focus" : "") + '">' + icon("arrow_back") + "</span>" +
+      '<div class="p-title title-l clamp1">' + esc(PTITLE) + "</div>" +
+      '<div class="p-sub body-s clamp1">Астрофото без границ • 720p</div>' +
+      '<div class="center-btn">' + icon(o.paused ? "play_arrow" : "pause") + "</div>" +
+      '<span class="tc l">04:21</span>' +
+      '<div class="slider on-video seek' + (f === "seek" ? " is-focus" : "") + '">' +
+        '<div class="track"></div><div class="buffer" style="width:52%"></div>' +
+        '<div class="fill" style="width:34%"></div><div class="thumb" style="left:34%"></div>' +
+        (f === "seek" ? '<div class="value" style="left:34%">04:21 / 12:48</div>' : "") +
+      "</div>" +
+      '<span class="tc r">12:48</span>' +
+      '<div class="p-row l">' +
+        '<span class="ibtn on-video">' + icon("replay_10") + "</span>" +
+        '<span class="ibtn on-video">' + icon("forward_10") + "</span>" +
+        '<span class="ibtn on-video">' + icon("volume_up") + "</span>" +
+        '<div class="slider on-video vol"><div class="track"></div>' +
+          '<div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div></div>' +
+      "</div>" +
+      '<div class="p-row r">' +
+        '<span class="ibtn on-video">' + icon("thumb_up") + "</span>" +
+        '<div class="tap"><span class="chip on-video">720p</span></div>' +
+        '<div class="tap"><span class="chip on-video">' + icon("gpp_good") + "SNI-обход</span></div>" +
+        '<span class="ibtn on-video">' + icon("more_vert") + "</span>" +
+      "</div>" + (o.safe ? safeZone() : "") + "</div>";
+  }
+
+  /* ---------- Settings ---------- */
+  function settings(o) {
+    o = o || {};
+    function sw(on) { return '<span class="switch' + (on ? " is-on" : "") + '"></span>'; }
+    var seed = o.seed || "red";
+    var seeds = ["red", "blue", "green", "purple", "orange", "pink"].map(function (s) {
+      return '<span class="seed' + (s === seed ? " is-selected" : "") + '"><b style="background:var(--seed-' + s + ')">' +
+        (s === seed ? icon("check", "s18") : "") + "</b></span>";
+    }).join("");
+    var h = '<div class="cv"><div class="appbar">' +
+      '<span class="ibtn s44">' + icon("arrow_back") + "</span>" +
+      '<span class="headline-s">Настройки</span></div>' +
+      '<div class="set"><div class="col">';
+
+    h += '<div><span class="overline">Обход DPI • ByeByeDPI</span><div class="card">' +
+      '<div class="srow tight"><div class="main"><div class="title-m">Обход блокировок</div></div>' + sw(true) + "</div>" +
+      '<div class="body-m muted">Фрагментация TLS ClientHello против DPI-троттлинга YouTube</div>' +
+      '<div class="seg gap16"><div class="is-selected">Split</div>' +
+        '<div' + (o.focus === "seg" ? ' class="is-focus"' : "") + ">Multi</div><div>Disorder</div><div>TLS</div></div>" +
+      '<div class="srow gap12"><span class="btn tonal">' + icon("wifi") + "Проверить доступ</span>" +
+        '<span class="status">' + icon("check", "s18") + "YouTube: 128 мс</span></div>" +
+      '<div class="stats body-m">' +
+        '<div class="clamp1">Соединений: 12 • фрагментов: 8 • трафик: 3,4 МБ</div>' +
+        '<div class="clamp1">Прокси: 127.0.0.1:1080</div>' +
+        '<div class="clamp1">SNI-обход: вкл • TLS: имя + цепочка</div>' +
+      "</div></div></div>";
+
+    h += '<div><span class="overline">Видео</span><div class="card">' +
+      '<div class="title-m">Качество по умолчанию</div>' +
+      '<div class="seg"><div class="is-selected">Авто</div><div>720p</div><div>480p</div><div>360p</div></div>' +
+      '<div class="srow gap12" style="margin-bottom:-8px"><div class="main">' +
+        '<div class="title-m">Автовоспроизведение следующего видео</div></div>' + sw(true) + "</div>" +
+      "</div></div>";
+
+    h += '<div><span class="overline">Звук • Синхронизация с видео</span><div class="card">' +
+      '<div class="srow tight"><div class="main"><div class="title-m">Сдвиг звука</div></div>' +
+        '<div class="stepper"><span class="btn tonal">−50</span><span class="val">0 мс</span>' +
+        '<span class="btn tonal">+50</span><span class="btn text">' + icon("restart_alt") + "Сброс</span></div></div>" +
+      '<div class="body-m muted gap8">Если звук отстаёт от картинки — сдвиньте в плюс</div>' +
+      "</div></div>";
+
+    h += '</div><div class="col">';
+
+    h += '<div><span class="overline">Оформление • Material 3</span><div class="card">' +
+      '<div class="srow tight"><div class="main"><div class="title-m">Тёмная тема</div>' +
+        '<div class="body-m muted">M3 tonal palette, автоматически</div></div>' + sw(true) + "</div>" +
+      '<div class="title-m gap16">Палитра</div><div class="seeds">' + seeds + "</div>" +
+      "</div></div>";
+
+    h += '<div><span class="overline">История и рекомендации</span><div class="card">' +
+      '<div class="srow tight"><div class="main"><div class="title-m">Локальные рекомендации</div>' +
+        '<div class="body-m muted">История хранится только на этой консоли</div></div>' + sw(true) + "</div>" +
+      '<div class="gap12" style="margin-bottom:-8px">' +
+        '<span class="btn text danger flush">' + icon("delete") + "Очистить историю</span></div>" +
+      "</div></div>";
+
+    h += '<div><span class="overline">О приложении</span><div class="card">' +
+      '<div class="title-m">TubeNX 1.0</div>' +
+      '<div class="body-m muted" style="margin-top:2px">Material 3 Expressive • Google Sans</div>' +
+      '<div class="body-s muted" style="margin-top:4px">Сборка: 2026.11.13 • libnx 4.9.0</div>' +
+      '<div class="gap8"><span class="btn text flush">Лицензии open source' +
+        icon("chevron_right", "end") + "</span></div>" +
+      "</div></div>";
+
+    h += "</div></div>" + '<div class="fade"></div>' + (o.safe ? safeZone() : "") + "</div>";
+    return h;
+  }
+
+  /* ---------- Лист вариантов раскладки ---------- */
+  function variants() {
+    var h = '<div class="cv">' +
+      '<div class="headline-s abs" style="left:64px; top:40px">Раскладка Home в доке: два варианта</div>' +
+      '<div class="body-m muted abs" style="left:64px; top:80px; width:1144px">' +
+        "ТЗ §4.2 задаёт поля 24 и карточку 296, §3.4 — safe area 64 / 36 без интерактивных элементов. " +
+        "В доке оба требования одновременно не выполняются: 4 · 296 + 3 · 16 = 1232 &gt; 1152. Пунктир — граница безопасной зоны.</div>" +
+      '<div class="mini" style="left:64px; top:150px"><div class="cv">' + home({ safe: true, quiet: true }) + "</div></div>" +
+      '<div class="mini" style="left:653px; top:150px"><div class="cv hh">' + home({ safe: true, quiet: true }) + "</div></div>" +
+      '<div class="vlabel" style="left:64px; top:480px">' +
+        '<span class="title-m">A · Поля 64, карточка 276</span><span class="rec">Рекомендация</span>' +
+        '<div class="body-s muted">4 · 276 + 3 · 16 = 1152 = 1280 − 2 · 64. Сетка целиком внутри safe area, высота карточки та же — 245.</div></div>' +
+      '<div class="vlabel" style="left:653px; top:480px">' +
+        '<span class="title-m">B · Поля 24, карточка 296 (как в handheld)</span>' +
+        '<div class="body-s muted">4 · 296 + 3 · 16 = 1232 &gt; 1152: крайние колонки заходят в safe area на 40 px — на телевизоре с overscan обрежутся.</div></div>' +
+      '<div class="body-s muted abs" style="left:64px; top:592px; width:1144px">' +
+        "Обе плитки — один и тот же экран при масштабе 1,5 к 1920×1080. Пунктирная рамка — 64 по бокам и 36 сверху и снизу.</div>" +
+      "</div>";
+    return h;
+  }
+
+  /* ---------- сборка ---------- */
+  document.querySelectorAll("[data-tv]").forEach(function (f) {
+    var o = JSON.parse(f.dataset.tv);
+    f.innerHTML = o.s === "home" ? home(o)
+      : o.s === "variants" ? variants()
+      : o.s === "search" ? search(o)
+      : o.s === "player" ? player(o)
+      : o.s === "settings" ? settings(o) : "";
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<title>TubeNX — вариант B</title>
+<defs><linearGradient id="g" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1024" y2="1024"><stop offset="0" stop-color="#C3002F"/><stop offset="1" stop-color="#7A0020"/></linearGradient></defs>
+<rect width="1024" height="1024" fill="url(#g)"/>
+<path fill="#FFFFFF" d="M362.71 328.12A14 14 0 0 1 383.65 315.97L705.44 499.84A14 14 0 0 1 705.44 524.16L383.65 708.03A14 14 0 0 1 362.71 695.88Z"/>
+</svg>
