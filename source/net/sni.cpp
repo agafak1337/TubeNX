@@ -183,7 +183,17 @@ extern "C" Result __wrap_sslContextCreateConnection(SslContext* c, SslConnection
 
 extern "C" int __real_socketSslConnectionSetSocketDescriptor(SslConnection* c, int sockfd);
 
-// NET-04: если сервис ssl отказался принять сокет, рукопожатие бессмысленно.
+// NET-04: отказ сервиса ssl принять сокет делает рукопожатие бессмысленным —
+// но отказом считается только rc<0 с errno != ENOENT.
+//
+// libnx (switch/runtime/devices/socket.h, про socketSslConnectionSetSocketDescriptor)
+// пишет дословно: «Returns the output sockfd on success and -1 on error.
+// errno==ENOENT indicates that no sockfd was returned, this error must be
+// ignored.» То есть rc==-1 при errno==ENOENT — штатный исход: сокет сервисом
+// принят, новый fd просто не возвращён. Раньше мы считали это отказом,
+// из-за чего handshake пропускался на каждом соединении и весь HTTPS падал
+// с `curl 35: SSL connect error`.
+//
 // Флаг читает обёртка DoHandshake: она не продолжит handshake, а вернёт ошибку.
 thread_local bool g_badSocket = false;
 thread_local int g_badSocketRc = 0;
@@ -192,13 +202,26 @@ extern "C" int __wrap_socketSslConnectionSetSocketDescriptor(SslConnection* c, i
     const long long t0 = msNow();
     errno = 0;
     int rc = __real_socketSslConnectionSetSocketDescriptor(c, sockfd);
-    if (rc < 0) {
+    const int err = errno;
+    if (rc < 0 && err == ENOENT) {
+        // Штатный исход libnx: сокет принят, fd не возвращён. Handshake нужен.
+        g_badSocket = false;
+        g_badSocketRc = 0;
+        static std::atomic<bool> enoentLogged{false};
+        if (!enoentLogged.exchange(true)) {
+            tnx::platform::bootLog(
+                "ssl: SetSocketDescriptor(sockfd=%d) rc=-1/ENOENT — норма (fd не возвращён, "
+                "сокет принят)",
+                sockfd);
+        }
+        noteSlow("SetSocketDescriptor", msNow() - t0, rc);
+    } else if (rc < 0) {
         g_badSocket = true;
         g_badSocketRc = rc;
         tnx::platform::bootLog(
             "ssl: SetSocketDescriptor(sockfd=%d) -> rc=%d, errno=%d (%s): сокет не принят "
             "сервисом ssl, рукопожатие невозможно",
-            sockfd, rc, errno, std::strerror(errno));
+            sockfd, rc, err, std::strerror(err));
     } else {
         g_badSocket = false;
         // Одна строка об успехе — чтобы в логе было видно rc=0, а не только ошибки.
@@ -208,6 +231,9 @@ extern "C" int __wrap_socketSslConnectionSetSocketDescriptor(SslConnection* c, i
         }
         noteSlow("SetSocketDescriptor", msNow() - t0, rc);
     }
+    // libcurl (Curl_libnx_connect) проверяет не только rc==-1, но и errno==ENOENT:
+    // лог и noteSlow могут затереть errno, поэтому возвращаем его как было.
+    errno = err;
     return rc;
 }
 

@@ -132,6 +132,14 @@ void App::loadConfig() {
     clampInt("adelay", cfg.audioDelayMs, -2000, 2000);
     // Режимы DPI: 0 Off, 1 Split, 2 MultiSplit, 3 SplitDisorder, 4 TlsRecordSplit.
     clampInt("dpi_mode", cfg.dpiMode, 0, 4);
+    // CFG-03: в UI режима Off нет; в старых config.ini он сохранялся как 0
+    // (старый сдвиг индексов Split=0). Такой конфиг оставлял обход выключенным
+    // при включённом тумблере — мигрируем в Split, чтобы YouTube не отваливался
+    // с curl 35 на реальной консоли.
+    if (cfg.dpiMode == 0) {
+        cfg.dpiMode = 1;
+        platform::bootLog("config: dpi_mode=0 (Off) из старой версии -> Split (1)");
+    }
     clampInt("chip", cfg.homeChip, 0, 99);
     if (cfg.visitorSavedAt < 0) cfg.visitorSavedAt = 0;
 
