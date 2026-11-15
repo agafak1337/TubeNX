@@ -94,6 +94,14 @@ extern "C" Result __wrap_sslConnectionSetHostName(SslConnection* c, const char* 
     // DPI-08: подмена SNI только для строго совпадающих видео-хостов
     // (*.googlevideo.com). example.com и evilgooglevideo.com сюда не попадают.
     const char* spoof = tnx::net::sniSpoofName(str);
+    // DPI-17: при внешнем прокси DPI уже обойдён туннелем, а подменённое имя
+    // ломает выбор TLS-фронтенда — googlevideo отвечает 404 на videoplayback.
+    // Поэтому для видео-хостов уходит настоящее имя, без подмены и без регистра.
+    // С локальным SOCKS (127.0.0.1) и напрямую подмена остаётся.
+    if (spoof && tnx::net::externalProxySet()) {
+        rememberSni(str, str);
+        return __real_sslConnectionSetHostName(c, str, str_bufsize);
+    }
     if (spoof) {
         const char* name = g_spoofOverride ? g_spoofOverride : spoof;
         const size_t n = strlen(name);

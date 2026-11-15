@@ -1739,6 +1739,18 @@ struct RelayCtx {
     std::string contentRange;
     bool chunked = false; // upstream отдаёт chunked: длину клиенту не сообщаем
     uint64_t bodyBytes = 0;
+    // DPI-18 (диагностика): подробный лог SOCKS/TLS первых upstream-запросов
+    // и текст ошибки libcurl — без него видно только «Couldn't connect».
+    // Только на устройстве: в host-сборке curl.h не подключается.
+#ifndef TNX_HOST
+    int debugLines = 0;
+    char errbuf[CURL_ERROR_SIZE] = {0};
+#endif
+    // DPI-19: поток склеен из нескольких upstream-запросов фиксированного
+    // размера (googlevideo не отдаёт открытый Range). Клиенту уходит один
+    // непрерывный 206 без Content-Length/Content-Range.
+    bool aggregate = false;
+    uint64_t chunkBytes = 0; // сколько принёс текущий кусок
 
     void resetHeaders() {
         code = 0;
@@ -1758,9 +1770,11 @@ struct RelayCtx {
     out += c->reason.empty() ? reasonPhrase(code) : c->reason;
     out += "\r\n";
     if (!c->contentType.empty()) out += "Content-Type: " + c->contentType + "\r\n";
-    // При chunked у upstream длина после раскодирования неизвестна: отдаём
-    // тело до закрытия соединения (Connection: close), иначе клиент зависнет.
-    if (!c->contentLength.empty() && !c->chunked) {
+    // При склейке кусков upstream-длины и Content-Range относятся к одному
+    // куску, а клиенту уходит непрерывный поток до закрытия — их не отдаём.
+    // В обычном режиме при chunked длина после раскодирования неизвестна:
+    // отдаём тело до закрытия соединения (Connection: close).
+    if (!c->aggregate && !c->contentLength.empty() && !c->chunked) {
         out += "Content-Length: " + c->contentLength + "\r\n";
     }
     // Не выдумываем Accept-Ranges: если upstream его не прислал и это не 206,
@@ -1770,7 +1784,7 @@ struct RelayCtx {
     } else if (code == 206) {
         out += "Accept-Ranges: bytes\r\n";
     }
-    if (!c->contentRange.empty()) out += "Content-Range: " + c->contentRange + "\r\n";
+    if (!c->aggregate && !c->contentRange.empty()) out += "Content-Range: " + c->contentRange + "\r\n";
     if (c->rangeIgnored) out += "X-TubeNX-Range-Ignored: 1\r\n";
     out += "Connection: close\r\n\r\n";
     // Даже частичная запись означает «заголовки начаты»: второй статус-строки
@@ -1832,6 +1846,24 @@ bool bindLocalListener(int wantPort, int& outFd, int& outPort) {
 
 #ifndef TNX_HOST
 
+// DPI-18: подробный upstream-лог (SOCKS/TLS) для первых relay-запросов.
+// Нужен, когда curl возвращает «Couldn't connect» без единой подсказки:
+// здесь видно, дошёл ли он до прокси, что ответил SOCKS5 и где оборвалось.
+// CURLINFO_TEXT — служебные строки libcurl, подписанных query-параметров в них
+// нет; HEADER_OUT (строки запроса) намеренно не логируем.
+int relayDebugCb(CURL*, curl_infotype type, char* data, size_t size, void* user) {
+    if (type != CURLINFO_TEXT || !user || !data) return 0;
+    RelayCtx* c = static_cast<RelayCtx*>(user);
+    if (c->debugLines >= 40) return 0;
+    ++c->debugLines;
+    std::string line(data, size);
+    while (!line.empty() && (line.back() == '\n' || line.back() == '\r')) line.pop_back();
+    if (line.empty()) return 0;
+    if (line.size() > 200) line.resize(200);
+    platform::bootLog("relay curl: %s", line.c_str());
+    return 0;
+}
+
 size_t relayWriteCb(char* ptr, size_t size, size_t nmemb, void* userdata) {
     RelayCtx* c = static_cast<RelayCtx*>(userdata);
     size_t len = size * nmemb;
@@ -1872,6 +1904,7 @@ size_t relayWriteCb(char* ptr, size_t size, size_t nmemb, void* userdata) {
     }
 
     c->bodyBytes += len;
+    c->chunkBytes += len;
     {
         std::lock_guard<std::mutex> lk(g_dataMu);
         // savedBytes — сколько байт плеер получил через обход (без ретранслятора
@@ -2023,6 +2056,35 @@ void* relayAcceptLoop(void* arg) {
     return nullptr;
 }
 
+// DPI-19: googlevideo с `rqh=1` отдаёт 403 и на запрос без Range, и на
+// открытый `Range: 0-` (проверено с ПК через тот же прокси: 403), а закрытый
+// диапазон работает (1–3 МБ — 206, 4 МБ и больше — снова 403). Поэтому
+// ретранслятор сам запрашивает поток кусками и склеивает их в один ответ.
+constexpr uint64_t kRelayChunk = 2ull * 1024 * 1024; // 2 МБ — с запасом до 3 МБ
+// Часть видео на узле кэширована не целиком: кусок с концом за ~3 МиБ
+// получает 403. Тогда уменьшаем окно и дотягиваем до предела.
+constexpr uint64_t kRelayChunkSmall = 256ull * 1024;
+constexpr int kRelayMaxChunks = 512; // предохранитель от цикла
+
+// Открытый Range — `0-` или пустой (mpv по умолчанию просит весь файл).
+bool rangeOpenEnded(const std::string& r) { return r.empty() || r.back() == '-'; }
+
+// Начало диапазона из `N-…` (только цифры до дефиса).
+bool rangeStartOffset(const std::string& r, uint64_t& out) {
+    out = 0;
+    if (r.empty()) return true;
+    size_t i = 0;
+    uint64_t v = 0;
+    while (i < r.size() && r[i] >= '0' && r[i] <= '9') {
+        if (v > (UINT64_MAX - 9) / 10) return false;
+        v = v * 10 + (uint64_t)(r[i] - '0');
+        ++i;
+    }
+    if (i == 0) return false;
+    out = v;
+    return true;
+}
+
 void relayHandle(int fd) {
     const long long sessionStartMs = nowMs(); // DPI-16: для метрики rate
     HttpRequest rq;
@@ -2111,7 +2173,7 @@ void relayHandle(int fd) {
     if (proxy.empty() && g_cfg.enabled && g_cfg.relayViaLocalSocks) {
         // Если глобальный прокси почему-то сброшен, ретранслятор всё равно
         // обязан идти через локальный SOCKS — иначе остаётся без обхода.
-        proxy = "socks5h://127.0.0.1:1080";
+        proxy = "socks5h://127.0.0.1:" + std::to_string(socksPort());
     }
     if (logIt) {
         // LOG-06/SEC-03: прокси в лог — без пароля.
@@ -2148,7 +2210,15 @@ void relayHandle(int fd) {
     // DPI-08: SNI подменяется только для `*.googlevideo.com` (иначе DPI рвёт
     // рукопожатие), Host остаётся настоящим. Строгая проверка по границе метки:
     // `evilgooglevideo.com` под подмену не попадает (net::hostMatchesDomain).
-    bool spoofedSni = net::hostMatchesDomain(upHost.c_str(), "googlevideo.com");
+    //
+    // DPI-17: подмена нужна только когда трафик идёт через локальный SOCKS
+    // (фрагментация ClientHello) или напрямую. Если задан внешний прокси,
+    // DPI уже обойдён туннелем, а подменённый SNI ломает CDN: googlevideo
+    // отдаёт 404, потому что TLS-фронтенд выбирается по SNI. В этом случае
+    // шлём настоящее имя.
+    const bool viaLocalSocks = (proxy == "socks5h://127.0.0.1:" + std::to_string(socksPort()));
+    const bool externalProxy = !proxy.empty() && !viaLocalSocks;
+    bool spoofedSni = !externalProxy && net::hostMatchesDomain(upHost.c_str(), "googlevideo.com");
 
     // Запасные конфиги: провайдер режет само имя в ClientHello, а серверы
     // Google обслуживают URL по Host. Все имена ниже проверены на живой сети
@@ -2176,6 +2246,15 @@ void relayHandle(int fd) {
     }
 
     CURLcode rc = CURLE_OK;
+    // DPI-19: если клиент просит открытый диапазон, upstream отдаёт 403.
+    // Идём кусками по kRelayChunk и склеиваем их в непрерывный 206.
+    bool aggregate = false;
+    uint64_t chunkStart = 0;
+    if (!isHead && rangeOpenEnded(range) && rangeStartOffset(range, chunkStart)) {
+        aggregate = true;
+        ctx.aggregate = true;
+    }
+
     for (int attempt = 0; attempt < orderLen; attempt++) {
         const int cand = order[attempt];
         if (cand >= 0) tubeSpoofSetName(kSpoofNames[cand]);
@@ -2209,9 +2288,16 @@ void relayHandle(int fd) {
         curl_easy_setopt(eh, CURLOPT_WRITEDATA, &ctx);
         curl_easy_setopt(eh, CURLOPT_HEADERFUNCTION, relayHeaderCb);
         curl_easy_setopt(eh, CURLOPT_HEADERDATA, &ctx);
+        // DPI-18: точный текст ошибки вместо «Couldn't connect to server».
+        curl_easy_setopt(eh, CURLOPT_ERRORBUFFER, ctx.errbuf);
+        if (logIt && ctx.debugLines < 40) {
+            curl_easy_setopt(eh, CURLOPT_VERBOSE, 1L);
+            curl_easy_setopt(eh, CURLOPT_DEBUGFUNCTION, relayDebugCb);
+            curl_easy_setopt(eh, CURLOPT_DEBUGDATA, &ctx);
+        }
 
         if (isHead) curl_easy_setopt(eh, CURLOPT_NOBODY, 1L);
-        if (!range.empty()) curl_easy_setopt(eh, CURLOPT_RANGE, range.c_str());
+        if (!aggregate && !range.empty()) curl_easy_setopt(eh, CURLOPT_RANGE, range.c_str());
 
         if (!proxy.empty()) {
             curl_easy_setopt(eh, CURLOPT_PROXY, proxy.c_str());
@@ -2248,14 +2334,78 @@ void relayHandle(int fd) {
             curl_easy_setopt(eh, CURLOPT_SSL_VERIFYHOST, 2L);
         }
 
-        rc = curl_easy_perform(eh);
+        if (aggregate) {
+            // DPI-19: закрытые куски по kRelayChunk. Хэндл один, поэтому TLS
+            // и соединение с CDN переиспользуются — платим только за первый.
+            uint64_t off = chunkStart;
+            uint64_t chunk = kRelayChunk;
+            std::string chunkUrl = upstream;
+            for (int ci = 0; ci < kRelayMaxChunks; ci++) {
+                const std::string r = std::to_string(off) + "-" +
+                                      std::to_string(off + chunk - 1);
+                const bool hadHead = ctx.headSent;
+                ctx.chunkBytes = 0;
+                ctx.errbuf[0] = 0;
+                curl_easy_setopt(eh, CURLOPT_RANGE, r.c_str());
+                rc = curl_easy_perform(eh);
+                if (rc != CURLE_OK) break;
+                // Кусок отклонён (обычно 403 на видео, кэшированном частично).
+                // Заголовки 206 клиенту уже отданы, поэтому вместо обрыва
+                // пробуем то же место окном меньше.
+                if (ctx.code != 200 && ctx.code != 206) {
+                    if (hadHead && chunk > kRelayChunkSmall) {
+                        chunk = kRelayChunkSmall;
+                        continue;
+                    }
+                    platform::bootLog("relay: кусок отклонён http=%ld off=%llu "
+                                      "(дальше CDN не отдаёт)",
+                                      (long)ctx.code, (unsigned long long)off);
+                    break;
+                }
+                // 200 при off>0 значит upstream проигнорировал Range: тело
+                // пойдёт с начала файла — это дубль, останавливаемся.
+                if (ctx.code == 200 && off > 0) {
+                    platform::bootLog("relay: кусок off=%llu вернул 200 вместо 206",
+                                      (unsigned long long)off);
+                    break;
+                }
+                // CDN отвечает 302 на ближайший фронтенд: берём конечный адрес,
+                // чтобы следующие куски не платили за ту же цепочку редиректов.
+                if (char* eff = nullptr) {
+                    if (curl_easy_getinfo(eh, CURLINFO_EFFECTIVE_URL, &eff) == CURLE_OK && eff &&
+                        *eff) {
+                        chunkUrl = eff;
+                        curl_easy_setopt(eh, CURLOPT_URL, chunkUrl.c_str());
+                    }
+                }
+                if (logIt && ci > 0 && ci % 10 == 0 && ctx.chunkBytes) {
+                    platform::bootLog("relay: кусок %d, off=%llu, %llu байт", ci + 1,
+                                      (unsigned long long)off,
+                                      (unsigned long long)ctx.chunkBytes);
+                }
+                off += ctx.chunkBytes;
+                // Короткий кусок (или пустой) — это конец файла/ошибка.
+                if (ctx.chunkBytes < chunk) break;
+                if (ctx.failed || ctx.clientGone || ctx.timedOut) break;
+            }
+        } else {
+            rc = curl_easy_perform(eh);
+        }
 
         if (logIt) {
             const std::string err = rc == CURLE_OK
                                         ? std::string()
                                         : (" (" + std::string(curl_easy_strerror(rc)) + ")");
-            platform::bootLog("relay: %s -> %ld%s, %llu байт", upHost.c_str(), ctx.code,
-                              err.c_str(), (unsigned long long)ctx.bodyBytes);
+            // DPI-18: error buffer libcurl даёт конкретную причину (SOCKS5 reply,
+            // TLS, таймаут фазы), strerror её не содержит.
+            if (rc != CURLE_OK && ctx.errbuf[0]) {
+                platform::bootLog("relay: %s -> %ld%s, %llu байт; curl: %s", upHost.c_str(),
+                                  ctx.code, err.c_str(),
+                                  (unsigned long long)ctx.bodyBytes, ctx.errbuf);
+            } else {
+                platform::bootLog("relay: %s -> %ld%s, %llu байт", upHost.c_str(), ctx.code,
+                                  err.c_str(), (unsigned long long)ctx.bodyBytes);
+            }
         }
 
         curl_easy_cleanup(eh);
@@ -2279,6 +2429,7 @@ void relayHandle(int fd) {
         ctx = RelayCtx{};
         ctx.fd = fd;
         ctx.isHead = isHead;
+        ctx.aggregate = aggregate;
     }
 
     // Возвращаем умолчание, чтобы состояние потока было предсказуемым.
@@ -2927,14 +3078,23 @@ ProbeResult probe(const char* host, int port, bool useBypass) {
 // нет, поэтому проба вырождается в TCP-connect.
 static bool probeGenerate204(int& rttMs, long& status, std::string& error) {
 #ifndef TNX_HOST
-    const int sp = g_socks.port.load();
-    if (sp <= 0) {
-        error = "SOCKS-прокси не запущен";
-        rttMs = 0;
-        status = 0;
-        return false;
+    // DPI-17: если задан внешний прокси, проба идёт через него: туннель и есть
+    // обход, а локальный SOCKS в этом режиме не нужен и даёт ложные «нет сети»
+    // (в логе: connect к 127.0.0.1:1080 -> connection refused, 9.5 с ожидания).
+    const std::string ext = net::proxy();
+    std::string proxy;
+    if (!ext.empty() && net::externalProxySet()) {
+        proxy = ext;
+    } else {
+        const int sp = g_socks.port.load();
+        if (sp <= 0) {
+            error = "SOCKS-прокси не запущен";
+            rttMs = 0;
+            status = 0;
+            return false;
+        }
+        proxy = "socks5h://127.0.0.1:" + std::to_string(sp);
     }
-    const std::string proxy = "socks5h://127.0.0.1:" + std::to_string(sp);
     net::Overrides ov{proxy.c_str(), -1};
     net::Headers h;
     const long long t0 = nowMs();

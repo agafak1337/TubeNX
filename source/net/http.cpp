@@ -43,17 +43,35 @@ std::mutex g_mu;
 std::atomic<int> g_verboseLeft{14};
 struct DebugCtx {
     std::chrono::steady_clock::time_point t0;
+    int outLines = 0;   // сколько строк исходящего запроса уже залогировано
 };
 int debugCb(CURL*, curl_infotype type, char* data, size_t size, void* user) {
-    if (type != CURLINFO_TEXT || !user) return 0;
+    // CURLINFO_HEADER_OUT — ровно те строки, что ушли на сервер. Нужно, когда
+    // ответ не сходится с ожиданием (например, 404 обложек на консоли при
+    // рабочем URL с ПК): в логе видно запрошенный путь, Host и заголовки.
+    // Включается только в verbose-режиме (первые запросы за запуск).
+    const bool out = (type == CURLINFO_HEADER_OUT);
+    if ((!out && type != CURLINFO_TEXT) || !user) return 0;
     DebugCtx* d = static_cast<DebugCtx*>(user);
     std::string line(data, size);
     while (!line.empty() && (line.back() == '\n' || line.back() == '\r')) line.pop_back();
     if (line.empty()) return 0;
+    if (out) {
+        if (d->outLines >= 12) return 0;
+        ++d->outLines;
+        // LOG-06/SEC-03: значения Cookie в лог не попадают.
+        static const char kCookie[] = "cookie:";
+        bool isCookie = line.size() >= sizeof(kCookie) - 1;
+        for (size_t i = 0; isCookie && i < sizeof(kCookie) - 1; ++i) {
+            if (std::tolower(static_cast<unsigned char>(line[i])) != kCookie[i])
+                isCookie = false;
+        }
+        if (isCookie) line = "Cookie: <скрыто>";
+    }
     const long long ms = (long long)std::chrono::duration_cast<std::chrono::milliseconds>(
                              std::chrono::steady_clock::now() - d->t0)
                              .count();
-    platform::bootLog("curl +%lld мс: %s", ms, line.c_str());
+    platform::bootLog("curl +%lld мс: %s%s", ms, out ? "-> " : "", line.c_str());
     return 0;
 }
 
@@ -559,9 +577,16 @@ Response performOnce(const char* method, const std::string& url, const std::stri
         curl_easy_setopt(eh, CURLOPT_POSTFIELDSIZE,
                          static_cast<long>(body->size()));
     } else {
-        curl_easy_setopt(eh, CURLOPT_HTTPGET, 1L);
+        // NET-18: порядок важен! В libcurl установка CURLOPT_POSTFIELDS — даже
+        // в nullptr — переключает метод на POST (так в 7.69: `data->set.method
+        // = HTTPREQ_POST`). Хэндл переиспользуется между запросами, поэтому
+        // после ленты (POST) все GET уходили как `POST /vi/...jpg` с
+        // `Content-Length: 0`: обложки получали 404, `www.youtube.com/` — 400,
+        // а googlevideo на POST отдавал 404, из-за чего видео не играло.
+        // Сначала сбрасываем тело, и только последним — CURLOPT_HTTPGET.
         curl_easy_setopt(eh, CURLOPT_POSTFIELDS, nullptr);
         curl_easy_setopt(eh, CURLOPT_POSTFIELDSIZE, 0L);
+        curl_easy_setopt(eh, CURLOPT_HTTPGET, 1L);
     }
 
     if (list) curl_easy_setopt(eh, CURLOPT_HTTPHEADER, list);
@@ -928,6 +953,23 @@ void setProxy(const std::string& url) {
 
 std::string proxy() {
     return configSnapshot()->proxy;
+}
+
+bool externalProxySet() {
+    const std::string p = configSnapshot()->proxy;
+    if (p.empty()) return false;
+    // "socks5h://127.0.0.1:1080" — наш локальный SOCKS (фрагментация ClientHello),
+    // он DPI не обходит, подмена SNI для него остаётся нужной.
+    const size_t scheme = p.find("://");
+    const size_t hostStart = scheme == std::string::npos ? 0 : scheme + 3;
+    const size_t hostEnd = p.find_first_of(":/@", hostStart);
+    std::string host = p.substr(hostStart, hostEnd == std::string::npos
+                                              ? std::string::npos
+                                              : hostEnd - hostStart);
+    for (char& ch : host) ch = (char)std::tolower((unsigned char)ch);
+    const bool loopback = host == "127.0.0.1" || host == "localhost" ||
+                          host == "::1" || host == "[::1]";
+    return !loopback;
 }
 
 void setCaBundlePath(const std::string& path) {

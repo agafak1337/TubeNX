@@ -68,6 +68,9 @@ bool reconfigure(const NetConfig& cfg);
 // init(); «тихой» частичной записи под работающими запросами нет.
 void setProxy(const std::string& url);   // "socks5h://127.0.0.1:1080" или "" — напрямую
 std::string proxy();
+// DPI-17: true, если задан внешний прокси (не loopback). С ним DPI уже обойдён
+// туннелем, и подмена SNI на googlevideo только ломает CDN (404 videoplayback).
+bool externalProxySet();
 void setCaBundlePath(const std::string& path);
 void setUserAgent(const std::string& ua);
 void setVerify(Verify v);

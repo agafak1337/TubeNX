@@ -920,6 +920,10 @@ void App::drawSettings(ui::Ui& u) {
     // card + 20) + 8 снизу. Правая колонка выше левой (1270 px до низа
     // последней карточки). Карточка «Сеть» выросла на кнопку SEC-01.
     const float contentH = 1278.f + bannerH;
+    // UX-13: виджеты должны знать, к какому скролл-контейнеру относятся —
+    // иначе стик/D-pad не прокручивают настройки, а фокус не докручивает
+    // карточку в видимую область (как на «Главной» и в поиске).
+    u.pushScroll(u.id("set.scroll"));
     float off = u.scrollArea(u.id("set.scroll"), vp, contentH);
     c.pushClip(vp);
 
@@ -1311,6 +1315,7 @@ void App::drawSettings(ui::Ui& u) {
     yR += 156.f + 20.f;
 
     c.popClip();
+    u.popScroll();
 
     // Диалог очистки истории: опасное действие только через подтверждение (§5.8).
     if (g_setDialog) {
@@ -1374,6 +1379,10 @@ void App::drawToasts(ui::Ui& u) {
 
 // ---------------------------------------------------------------- draw
 void App::draw(ui::Ui& u) {
+    // UX-11: B — назад. Плеер обрабатывает B сам (диалог закрытия после 30 с),
+    // «Главная» — корень, там B ничего не делает.
+    if (u.input().back && (screen == Screen::Settings || screen == Screen::Search)) back();
+
     switch (screen) {
     case Screen::Splash: drawSplash(u); break;
     case Screen::Home: drawHome(u); break;
