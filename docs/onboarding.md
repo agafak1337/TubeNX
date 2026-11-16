@@ -257,7 +257,8 @@ git push -u origin имя/тема
 - никаких секретов, cookie, личных IP, серийных номеров и путей со своего
   компьютера в коде, логах и документации.
 
-Подробнее — [`CONTRIBUTING.md`](../CONTRIBUTING.md).
+Подробнее — [`CONTRIBUTING.md`](../CONTRIBUTING.md). Если хочешь помогать
+регулярно и получить право записи в репозиторий — [`docs/coauthorship.md`](coauthorship.md).
 
 ---
 
