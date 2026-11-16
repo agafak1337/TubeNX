@@ -534,9 +534,13 @@ Layout {
 
 ### 5.10. Иконки, NACP, hbmenu
 
-- Иконка приложения — `design/export/icon/icon-256.png` (256×256 RGBA).
-  Заменить `resources/images/icon.jpg` (старая) на новый PNG; Makefile
-  `ICON := resources/images/icon.png`.
+- Иконка приложения — `design/export/icon/icon-256.png` (256×256, вариант A:
+  squircle на непрозрачной подложке; это и есть NACP-иконка по `06-icon`).
+  Мастер кладём в `resources/images/icon.png`, но **в `.nro` идёт JPEG**:
+  hbmenu декодирует иконку NRO как JPEG, а `elf2nro` вкладывает файл как есть
+  без проверки формата (проверено: PNG и даже текст проходят без ошибки, но в
+  hbmenu плитка остаётся пустой). Поэтому `resources/images/icon.jpg` — JPEG-копия
+  мастера (`tools/png2jpg.cpp`, 256×256, q=92), и `ICON := resources/images/icon.jpg`.
 - Монохром — `icon-mono-256.png` (`Р-07`), только для внутренних нужд.
 - NACP: название «TubeNX», автор `agafak1337`, версия из `Makefile`,
   иконка 256×256. Приложение обязано быть видно в hbmenu.

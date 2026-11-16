@@ -137,10 +137,23 @@ bash tools/preview.sh /tmp/tubenx   # → 01_splash.png … 07_home_light.png
 
 Это тот же код UI, что и в NRO: рендер в память и запись PNG. Так же сделаны скриншоты выше.
 
+## Как помочь
+
+Проект открыт для помощи: нужны руки по интерфейсу и по сети/плееру. Начните с
+[`CONTRIBUTING.md`](CONTRIBUTING.md) — правила, зоны и стиль, — затем
+[`docs/onboarding.md`](docs/onboarding.md) (первый день по шагам) и
+[`docs/tasks.md`](docs/tasks.md) (готовые задачи с критериями приёмки).
+
+Консоль для разработки не обязательна: почти всё проверяется host-тестами и
+offscreen-рендером экранов.
+
 ## Документация
 
 | Документ | О чём |
 |---|---|
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | как помочь: правила, зоны, коммиты, проверки |
+| [`docs/onboarding.md`](docs/onboarding.md) | первый день: toolchain, сборка, тесты, разбор кода |
+| [`docs/tasks.md`](docs/tasks.md) | задачи с зонами и критериями приёмки |
 | [`docs/architecture.md`](docs/architecture.md) | слои, потоки, SSL-бюджет, таймауты, жизненный цикл, где логи |
 | [`docs/network.md`](docs/network.md) | runbook: как снять лог, `curl 28`, `400`/`404`, SOCKS/relay |
 | [`docs/security.md`](docs/security.md) | SNI-подмена, проверка сертификатов, локальные слушатели, риски |
